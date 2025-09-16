@@ -62,7 +62,7 @@ impl AlkahestExtension for CustomTrackerExtension {
 
     async fn init(
         _private_key: PrivateKeySigner,
-        _rpc_url: impl ToString + Clone + Send,
+        _providers: alkahest_rs::types::ProviderContext,
         config: Option<Self::Config>,
     ) -> eyre::Result<Self> {
         Ok(CustomTrackerExtension::new(config))

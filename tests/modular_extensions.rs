@@ -223,7 +223,7 @@ async fn test_custom_extension_implementation() -> Result<()> {
 
         async fn init(
             private_key: PrivateKeySigner,
-            rpc_url: impl ToString + Clone + Send,
+            providers: alkahest_rs::types::ProviderContext,
             config: Option<Self::Config>,
         ) -> eyre::Result<Self> {
             let config = config.unwrap_or_else(|| MyCustomConfig {
@@ -232,7 +232,7 @@ async fn test_custom_extension_implementation() -> Result<()> {
             });
 
             let erc20 =
-                Erc20Module::init(private_key, rpc_url, Some(config.erc20_addresses)).await?;
+                Erc20Module::init(private_key, providers, Some(config.erc20_addresses)).await?;
 
             Ok(MyCustomExtension {
                 my_data: config.my_data,
