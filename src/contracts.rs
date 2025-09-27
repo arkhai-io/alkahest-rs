@@ -283,7 +283,6 @@ sol!(
 );
 
 pub mod attester_arbiters {
-    
 
     pub mod composing {
         use alloy::sol;
@@ -407,10 +406,8 @@ pub mod payment_fulfillment_arbiters {
 }
 
 pub mod expiration_time_arbiters {
-    
 
     pub mod after {
-        
 
         pub mod composing {
             use alloy::sol;
@@ -438,7 +435,6 @@ pub mod expiration_time_arbiters {
     }
 
     pub mod before {
-        
 
         pub mod composing {
             use alloy::sol;
@@ -466,7 +462,6 @@ pub mod expiration_time_arbiters {
     }
 
     pub mod equal {
-        
 
         pub mod composing {
             use alloy::sol;
@@ -495,7 +490,6 @@ pub mod expiration_time_arbiters {
 }
 
 pub mod extended_recipient_arbiters {
-    
 
     pub mod composing {
         use alloy::sol;
@@ -523,7 +517,6 @@ pub mod extended_recipient_arbiters {
 }
 
 pub mod ref_uid_arbiters {
-    
 
     pub mod composing {
         use alloy::sol;
@@ -551,7 +544,6 @@ pub mod ref_uid_arbiters {
 }
 
 pub mod revocable_arbiters {
-    
 
     pub mod composing {
         use alloy::sol;
@@ -579,7 +571,6 @@ pub mod revocable_arbiters {
 }
 
 pub mod schema_arbiters {
-    
 
     pub mod composing {
         use alloy::sol;
@@ -607,10 +598,8 @@ pub mod schema_arbiters {
 }
 
 pub mod time_arbiters {
-    
 
     pub mod after {
-        
 
         pub mod composing {
             use alloy::sol;
@@ -638,7 +627,6 @@ pub mod time_arbiters {
     }
 
     pub mod before {
-        
 
         pub mod composing {
             use alloy::sol;
@@ -666,7 +654,6 @@ pub mod time_arbiters {
     }
 
     pub mod equal {
-        
 
         pub mod composing {
             use alloy::sol;
@@ -695,7 +682,6 @@ pub mod time_arbiters {
 }
 
 pub mod extended_uid_arbiters {
-    
 
     pub mod composing {
         use alloy::sol;
