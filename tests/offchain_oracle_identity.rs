@@ -4,15 +4,14 @@ use std::{
 
 use alkahest_rs::{
     AlkahestClient, DefaultAlkahestClient,
-    clients::oracle::{ArbitrateOptions, AttestationFilter, FulfillmentParams},
+    clients::oracle::ArbitrateOptions,
     contracts::StringObligation,
     extensions::{HasArbiters, HasOracle, HasStringObligation},
     utils::{TestContext, setup_test_environment},
 };
 use alloy::{
-    eips::BlockNumberOrTag,
+    dyn_abi::SolType,
     primitives::{Address, Signature, keccak256},
-    rpc::types::{FilterBlockOption, ValueOrArray},
     signers::{Signer, local::PrivateKeySigner},
 };
 use eyre::{Result, WrapErr};
@@ -34,10 +33,17 @@ fn identity_registry() -> &'static Mutex<HashMap<Address, u64>> {
 }
 
 fn verify_identity(
-    obligation: &StringObligation::ObligationData,
+    attestation: &alkahest_rs::contracts::IEAS::Attestation,
 ) -> Pin<Box<dyn Future<Output = Option<bool>> + Send>> {
-    let payload = obligation.item.clone();
+    let attestation = attestation.clone();
     Box::pin(async move {
+        // Extract obligation data
+        let obligation: StringObligation::ObligationData = match StringObligation::ObligationData::abi_decode(&attestation.data) {
+            Ok(o) => o,
+            Err(_) => return Some(false),
+        };
+
+        let payload = obligation.item.clone();
         let parsed: IdentityFulfillment = match serde_json::from_str(&payload) {
             Ok(p) => p,
             Err(_) => return Some(false),
@@ -90,23 +96,6 @@ async fn run_contextless_identity_example(test: &TestContext) -> eyre::Result<()
     let charlie_oracle = charlie_client.oracle().clone();
     let charlie_arbiters = charlie_client.arbiters().clone();
 
-    let fulfillment_filter = FulfillmentParams::<StringObligation::ObligationData> {
-        filter: AttestationFilter {
-            attester: Some(ValueOrArray::Value(
-                test.addresses.string_obligation_addresses.obligation,
-            )),
-            recipient: Some(ValueOrArray::Value(test.bob.address())),
-            schema_uid: None,
-            uid: None,
-            ref_uid: None,
-            block_option: Some(FilterBlockOption::Range {
-                from_block: Some(BlockNumberOrTag::Earliest),
-                to_block: Some(BlockNumberOrTag::Latest),
-            }),
-        },
-        _obligation_data: std::marker::PhantomData,
-    };
-
     {
         let mut registry = identity_registry().lock().await;
         registry.clear();
@@ -121,13 +110,10 @@ async fn run_contextless_identity_example(test: &TestContext) -> eyre::Result<()
 
     let listen_result = charlie_oracle
         .listen_and_arbitrate_async(
-            &fulfillment_filter,
             verify_identity,
             |_| async {},
             &ArbitrateOptions {
-                require_oracle: false,
                 skip_arbitrated: true,
-                require_request: true,
                 only_new: true,
             },
         )

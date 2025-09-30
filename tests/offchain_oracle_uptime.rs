@@ -11,7 +11,7 @@ use alkahest_rs::{
     AlkahestClient, DefaultAlkahestClient,
     clients::{
         arbiters::{ArbitersModule, TrustedOracleArbiter},
-        oracle::{ArbitrateOptions, AttestationFilter, EscrowParams, FulfillmentParams},
+        oracle::ArbitrateOptions,
     },
     contracts::StringObligation,
     extensions::{HasArbiters, HasErc20, HasOracle, HasStringObligation},
@@ -20,9 +20,7 @@ use alkahest_rs::{
     utils::{TestContext, setup_test_environment},
 };
 use alloy::{
-    eips::BlockNumberOrTag,
     primitives::{Bytes, FixedBytes},
-    rpc::types::{FilterBlockOption, ValueOrArray},
     signers::local::PrivateKeySigner,
 };
 use eyre::{Result, WrapErr, eyre};
@@ -58,6 +56,7 @@ struct SchedulerContext {
     job_db: JobDb,
     notify: Arc<Notify>,
     url_index: UrlIndex,
+    oracle: alkahest_rs::clients::oracle::OracleModule,
 }
 
 static SCHEDULER_STATE: OnceLock<Mutex<Option<SchedulerContext>>> = OnceLock::new();
@@ -67,22 +66,34 @@ fn scheduler_state() -> &'static Mutex<Option<SchedulerContext>> {
 }
 
 fn schedule_pings(
-    statement: &StringObligation::ObligationData,
-    demand: &TrustedOracleArbiter::DemandData,
+    attestation: &alkahest_rs::contracts::IEAS::Attestation,
 ) -> Pin<Box<dyn Future<Output = Option<bool>> + Send>> {
-    let url = statement.item.clone();
-    let demand_bytes = demand.data.clone();
+    let attestation = attestation.clone();
+
     Box::pin(async move {
         let ctx_opt = scheduler_state().lock().await.clone();
         let Some(ctx) = ctx_opt else {
             return None;
         };
 
+        // Extract obligation data
+        let Ok(statement) = ctx.oracle.extract_obligation_data::<StringObligation::ObligationData>(&attestation)
+        else {
+            return None;
+        };
+
+        let url = statement.item.clone();
         let Some(uid) = ctx.url_index.lock().await.get(&url).cloned() else {
             return None;
         };
 
-        let Ok(parsed_demand) = serde_json::from_slice::<UptimeDemand>(demand_bytes.as_ref())
+        // Get escrow and extract demand
+        let Ok((_, demand)) = ctx.oracle.get_escrow_and_demand::<TrustedOracleArbiter::DemandData>(&attestation).await
+        else {
+            return None;
+        };
+
+        let Ok(parsed_demand) = serde_json::from_slice::<UptimeDemand>(demand.data.as_ref())
         else {
             return None;
         };
@@ -244,69 +255,36 @@ async fn run_async_uptime_oracle_example(test: &TestContext) -> eyre::Result<()>
         }
     });
 
-    let fulfillment_params = FulfillmentParams::<StringObligation::ObligationData> {
-        filter: AttestationFilter {
-            attester: Some(ValueOrArray::Value(
-                test.addresses.string_obligation_addresses.obligation,
-            )),
-            recipient: Some(ValueOrArray::Value(test.bob.address())),
-            schema_uid: None,
-            uid: None,
-            ref_uid: Some(ValueOrArray::Value(escrow_uid)),
-            block_option: Some(FilterBlockOption::Range {
-                from_block: Some(BlockNumberOrTag::Earliest),
-                to_block: Some(BlockNumberOrTag::Latest),
-            }),
-        },
-        _obligation_data: std::marker::PhantomData,
-    };
-
-    let escrow_params = EscrowParams::<TrustedOracleArbiter::DemandData> {
-        filter: AttestationFilter {
-            attester: Some(ValueOrArray::Value(
-                test.addresses.erc20_addresses.escrow_obligation,
-            )),
-            recipient: Some(ValueOrArray::Value(test.alice.address())),
-            schema_uid: None,
-            uid: Some(ValueOrArray::Value(escrow_uid)),
-            ref_uid: None,
-            block_option: Some(FilterBlockOption::Range {
-                from_block: Some(BlockNumberOrTag::Earliest),
-                to_block: Some(BlockNumberOrTag::Latest),
-            }),
-        },
-        _demand_data: std::marker::PhantomData,
-    };
-
+    // Setup scheduler context
     {
         let mut slot = scheduler_state().lock().await;
         *slot = Some(SchedulerContext {
             job_db: Arc::clone(&job_db),
             notify: Arc::clone(&scheduler_notify),
             url_index: Arc::clone(&url_index),
+            oracle: charlie_oracle.clone(),
         });
     }
 
-    let listen_result = charlie_oracle
-        .listen_and_arbitrate_for_escrow_async(
-            &escrow_params,
-            &fulfillment_params,
-            schedule_pings,
-            |_| async {},
-            &ArbitrateOptions {
-                require_oracle: true,
-                skip_arbitrated: true,
-                require_request: true,
-                only_new: false,
-            },
-        )
-        .await?;
-
+    // Request arbitration first
     test.bob_client
         .oracle()
         .request_arbitration(fulfillment_uid, charlie_client.address)
         .await?;
 
+    // Listen for arbitration requests
+    let listen_result = charlie_oracle
+        .listen_and_arbitrate_async(
+            schedule_pings,
+            |_| async {},
+            &ArbitrateOptions {
+                skip_arbitrated: true,
+                only_new: false,
+            },
+        )
+        .await?;
+
+    // Wait for the oracle to make a decision
     tokio::time::timeout(
         StdDuration::from_secs(10),
         charlie_arbiters.wait_for_trusted_oracle_arbitration(
@@ -335,10 +313,7 @@ async fn run_async_uptime_oracle_example(test: &TestContext) -> eyre::Result<()>
     .wrap_err("timed out waiting to collect escrow")?;
 
     charlie_oracle
-        .unsubscribe(listen_result.escrow_subscription_id)
-        .await?;
-    charlie_oracle
-        .unsubscribe(listen_result.fulfillment_subscription_id)
+        .unsubscribe(listen_result.subscription_id)
         .await?;
 
     worker.await.unwrap();

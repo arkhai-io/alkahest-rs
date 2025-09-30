@@ -1,7 +1,7 @@
 use std::{
     convert::TryInto,
-    marker::PhantomData,
     process::Command,
+    sync::Arc,
     time::{Duration as StdDuration, SystemTime, UNIX_EPOCH},
 };
 
@@ -9,7 +9,7 @@ use alkahest_rs::{
     AlkahestClient, DefaultAlkahestClient,
     clients::{
         arbiters::{ArbitersModule, TrustedOracleArbiter},
-        oracle::{ArbitrateOptions, AttestationFilter, EscrowParams, FulfillmentParams},
+        oracle::ArbitrateOptions,
     },
     contracts::StringObligation,
     extensions::{HasErc20, HasOracle, HasStringObligation},
@@ -18,9 +18,7 @@ use alkahest_rs::{
     utils::{TestContext, setup_test_environment},
 };
 use alloy::{
-    eips::BlockNumberOrTag,
     primitives::Bytes,
-    rpc::types::{FilterBlockOption, ValueOrArray},
     signers::local::PrivateKeySigner,
 };
 use eyre::{Result, WrapErr, eyre};
@@ -119,50 +117,34 @@ async fn run_synchronous_oracle_capitalization_example(test: &TestContext) -> ey
         .await?;
 
     // Step 4. Charlie evaluates the backlog and watches for new fulfillments.
-    let fulfillment = FulfillmentParams::<StringObligation::ObligationData> {
-        filter: AttestationFilter {
-            attester: Some(ValueOrArray::Value(
-                test.addresses.string_obligation_addresses.obligation,
-            )),
-            recipient: Some(ValueOrArray::Value(test.bob.address())),
-            schema_uid: None,
-            uid: None,
-            ref_uid: Some(ValueOrArray::Value(escrow_uid)),
-            block_option: Some(FilterBlockOption::Range {
-                from_block: Some(BlockNumberOrTag::Earliest),
-                to_block: Some(BlockNumberOrTag::Latest),
-            }),
-        },
-        _obligation_data: PhantomData,
-    };
-
-    let escrow = EscrowParams::<TrustedOracleArbiter::DemandData> {
-        filter: AttestationFilter {
-            attester: Some(ValueOrArray::Value(
-                test.addresses.erc20_addresses.escrow_obligation,
-            )),
-            recipient: Some(ValueOrArray::Value(test.alice.address())),
-            schema_uid: None,
-            uid: Some(ValueOrArray::Value(escrow_uid)),
-            ref_uid: None,
-            block_option: Some(FilterBlockOption::Range {
-                from_block: Some(BlockNumberOrTag::Earliest),
-                to_block: Some(BlockNumberOrTag::Latest),
-            }),
-        },
-        _demand_data: PhantomData,
-    };
-
+    let charlie_oracle_for_closure = Arc::new(charlie_oracle.clone());
     let listen_result = charlie_oracle
-        .listen_and_arbitrate_for_escrow_sync(
-            &escrow,
-            &fulfillment,
-            |statement, demand| {
+        .listen_and_arbitrate_sync(
+            move |attestation| {
+                // Extract the obligation data from the fulfillment attestation
+                let Ok(statement) = (*charlie_oracle_for_closure)
+                    .extract_obligation_data::<StringObligation::ObligationData>(attestation)
+                else {
+                    return Some(false);
+                };
+
+                // Get the escrow attestation and extract the demand
+                let oracle_for_block = charlie_oracle_for_closure.clone();
+                let Ok((_, demand)) = tokio::task::block_in_place(move || {
+                    tokio::runtime::Handle::current().block_on(
+                        (*oracle_for_block).get_escrow_and_demand::<TrustedOracleArbiter::DemandData>(attestation)
+                    )
+                }) else {
+                    return Some(false);
+                };
+
+                // Parse the demand payload
                 let Ok(payload) = serde_json::from_slice::<ShellOracleDemand>(demand.data.as_ref())
                 else {
                     return Some(false);
                 };
 
+                // Run the test cases
                 for case in payload.test_cases {
                     let command = format!("echo \"$INPUT\" | {}", statement.item);
                     let output = match Command::new("bash")
@@ -188,9 +170,7 @@ async fn run_synchronous_oracle_capitalization_example(test: &TestContext) -> ey
             },
             |_| async {},
             &ArbitrateOptions {
-                require_oracle: true,
                 skip_arbitrated: true,
-                require_request: true,
                 only_new: false,
             },
         )
@@ -205,10 +185,7 @@ async fn run_synchronous_oracle_capitalization_example(test: &TestContext) -> ey
     );
 
     charlie_oracle
-        .unsubscribe(listen_result.escrow_subscription_id)
-        .await?;
-    charlie_oracle
-        .unsubscribe(listen_result.fulfillment_subscription_id)
+        .unsubscribe(listen_result.subscription_id)
         .await?;
 
     // Step 5. The successful arbitration lets Bob claim the escrowed payment.

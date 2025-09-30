@@ -88,7 +88,7 @@ impl<F> SyncArbitration<F> {
 
 impl<F> ArbitrationStrategy for SyncArbitration<F>
 where
-    F: Fn(&Attestation) -> Option<bool> + Copy,
+    F: Fn(&Attestation) -> Option<bool>,
 {
     type Future = std::future::Ready<Option<bool>>;
 
@@ -110,7 +110,7 @@ impl<F> AsyncArbitration<F> {
 
 impl<F, Fut> ArbitrationStrategy for AsyncArbitration<F>
 where
-    F: Fn(&Attestation) -> Fut + Copy,
+    F: Fn(&Attestation) -> Fut,
     Fut: std::future::Future<Output = Option<bool>> + Send,
 {
     type Future = Fut;
@@ -403,7 +403,7 @@ impl OracleModule {
     }
 
     pub async fn arbitrate_past_sync<
-        Arbitrate: Fn(&Attestation) -> Option<bool> + Copy,
+        Arbitrate: Fn(&Attestation) -> Option<bool>,
     >(
         &self,
         arbitrate: Arbitrate,
@@ -415,7 +415,7 @@ impl OracleModule {
 
     pub async fn arbitrate_past_async<
         ArbitrateFut: std::future::Future<Output = Option<bool>> + Send,
-        Arbitrate: Fn(&Attestation) -> ArbitrateFut + Copy,
+        Arbitrate: Fn(&Attestation) -> ArbitrateFut,
     >(
         &self,
         arbitrate: Arbitrate,
@@ -428,7 +428,7 @@ impl OracleModule {
     async fn spawn_arbitration_listener<
         Strategy: ArbitrationStrategy + Send + 'static,
         OnAfterArbitrateFut: std::future::Future<Output = ()> + Send + 'static,
-        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut + Copy + Send + Sync + 'static,
+        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut + Send + Sync + 'static,
     >(
         &self,
         stream: SubscriptionStream<Log>,
@@ -525,9 +525,9 @@ impl OracleModule {
     }
 
     async fn spawn_arbitration_listener_sync<
-        Arbitrate: Fn(&Attestation) -> Option<bool> + Copy + Send + Sync + 'static,
+        Arbitrate: Fn(&Attestation) -> Option<bool> + Send + Sync + 'static,
         OnAfterArbitrateFut: std::future::Future<Output = ()> + Send + 'static,
-        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut + Copy + Send + Sync + 'static,
+        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut + Send + Sync + 'static,
     >(
         &self,
         stream: SubscriptionStream<Log>,
@@ -542,9 +542,9 @@ impl OracleModule {
 
     pub async fn spawn_arbitration_listener_async<
         ArbitrateFut: std::future::Future<Output = Option<bool>> + Send,
-        Arbitrate: Fn(&Attestation) -> ArbitrateFut + Copy + Send + Sync + 'static,
+        Arbitrate: Fn(&Attestation) -> ArbitrateFut + Send + Sync + 'static,
         OnAfterArbitrateFut: std::future::Future<Output = ()> + Send + 'static,
-        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut + Copy + Send + Sync + 'static,
+        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut + Send + Sync + 'static,
     >(
         &self,
         stream: SubscriptionStream<Log>,
@@ -662,9 +662,9 @@ impl OracleModule {
     }
 
     pub async fn listen_and_arbitrate_sync<
-        Arbitrate: Fn(&Attestation) -> Option<bool> + Copy + Send + Sync + 'static,
+        Arbitrate: Fn(&Attestation) -> Option<bool> + Send + Sync + 'static,
         OnAfterArbitrateFut: std::future::Future<Output = ()> + Send + 'static,
-        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut + Copy + Send + Sync + 'static,
+        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut + Send + Sync + 'static,
     >(
         &self,
         arbitrate: Arbitrate,
@@ -674,7 +674,11 @@ impl OracleModule {
         let decisions = if options.only_new {
             Vec::new()
         } else {
-            self.arbitrate_past_sync(arbitrate, options).await?
+            // Need to capture arbitrate for past arbitration
+            let attestations = self.get_arbitration_requested_attestations(options).await?;
+            let decisions: Vec<Option<bool>> =
+                attestations.iter().map(|a| arbitrate(a)).collect();
+            self.arbitrate_internal(decisions, attestations).await?
         };
 
         let filter = self.make_arbitration_requested_filter();
@@ -698,9 +702,9 @@ impl OracleModule {
 
     pub async fn listen_and_arbitrate_async<
         ArbitrateFut: std::future::Future<Output = Option<bool>> + Send,
-        Arbitrate: Fn(&Attestation) -> ArbitrateFut + Copy + Send + Sync + 'static,
+        Arbitrate: Fn(&Attestation) -> ArbitrateFut + Send + Sync + 'static,
         OnAfterArbitrateFut: std::future::Future<Output = ()> + Send + 'static,
-        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut + Copy + Send + Sync + 'static,
+        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut + Send + Sync + 'static,
     >(
         &self,
         arbitrate: Arbitrate,
@@ -710,7 +714,12 @@ impl OracleModule {
         let decisions = if options.only_new {
             Vec::new()
         } else {
-            self.arbitrate_past_async(arbitrate, options).await?
+            // Need to capture arbitrate for past arbitration
+            use futures::future::join_all;
+            let attestations = self.get_arbitration_requested_attestations(options).await?;
+            let decision_futs = attestations.iter().map(|a| arbitrate(a));
+            let decisions = join_all(decision_futs).await;
+            self.arbitrate_internal(decisions, attestations).await?
         };
 
         let filter = self.make_arbitration_requested_filter();
@@ -733,9 +742,9 @@ impl OracleModule {
     }
 
     pub async fn listen_and_arbitrate_no_spawn<
-        Arbitrate: Fn(&Attestation) -> Option<bool> + Copy,
+        Arbitrate: Fn(&Attestation) -> Option<bool> + Clone,
         OnAfterArbitrateFut: std::future::Future<Output = ()>,
-        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut,
+        OnAfterArbitrate: Fn(&Decision) -> OnAfterArbitrateFut + Clone,
     >(
         &self,
         arbitrate: Arbitrate,
@@ -746,7 +755,7 @@ impl OracleModule {
         let decisions = if options.only_new {
             Vec::new()
         } else {
-            self.arbitrate_past_sync(arbitrate, options).await?
+            self.arbitrate_past_sync(arbitrate.clone(), options).await?
         };
 
         let filter = self.make_arbitration_requested_filter();
