@@ -117,22 +117,22 @@ async fn run_synchronous_oracle_capitalization_example(test: &TestContext) -> ey
         .await?;
 
     // Step 4. Charlie evaluates the backlog and watches for new fulfillments.
-    let charlie_oracle_for_closure = Arc::new(charlie_oracle.clone());
+    let charlie_client_for_closure = Arc::new(charlie_client.clone());
     let listen_result = charlie_oracle
         .listen_and_arbitrate_sync(
             move |attestation| {
                 // Extract the obligation data from the fulfillment attestation
-                let Ok(statement) = (*charlie_oracle_for_closure)
+                let Ok(statement) = charlie_client_for_closure
                     .extract_obligation_data::<StringObligation::ObligationData>(attestation)
                 else {
                     return Some(false);
                 };
 
                 // Get the escrow attestation and extract the demand
-                let oracle_for_block = charlie_oracle_for_closure.clone();
+                let client_for_block = charlie_client_for_closure.clone();
                 let Ok((_, demand)) = tokio::task::block_in_place(move || {
                     tokio::runtime::Handle::current().block_on(
-                        (*oracle_for_block).get_escrow_and_demand::<TrustedOracleArbiter::DemandData>(attestation)
+                        client_for_block.get_escrow_and_demand::<TrustedOracleArbiter::DemandData>(attestation)
                     )
                 }) else {
                     return Some(false);

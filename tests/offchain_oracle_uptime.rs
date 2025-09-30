@@ -56,7 +56,7 @@ struct SchedulerContext {
     job_db: JobDb,
     notify: Arc<Notify>,
     url_index: UrlIndex,
-    oracle: alkahest_rs::clients::oracle::OracleModule,
+    client: Arc<alkahest_rs::AlkahestClient<alkahest_rs::extensions::BaseExtensions>>,
 }
 
 static SCHEDULER_STATE: OnceLock<Mutex<Option<SchedulerContext>>> = OnceLock::new();
@@ -77,7 +77,7 @@ fn schedule_pings(
         };
 
         // Extract obligation data
-        let Ok(statement) = ctx.oracle.extract_obligation_data::<StringObligation::ObligationData>(&attestation)
+        let Ok(statement) = ctx.client.extract_obligation_data::<StringObligation::ObligationData>(&attestation)
         else {
             return None;
         };
@@ -88,7 +88,7 @@ fn schedule_pings(
         };
 
         // Get escrow and extract demand
-        let Ok((_, demand)) = ctx.oracle.get_escrow_and_demand::<TrustedOracleArbiter::DemandData>(&attestation).await
+        let Ok((_, demand)) = ctx.client.get_escrow_and_demand::<TrustedOracleArbiter::DemandData>(&attestation).await
         else {
             return None;
         };
@@ -262,7 +262,7 @@ async fn run_async_uptime_oracle_example(test: &TestContext) -> eyre::Result<()>
             job_db: Arc::clone(&job_db),
             notify: Arc::clone(&scheduler_notify),
             url_index: Arc::clone(&url_index),
-            oracle: charlie_oracle.clone(),
+            client: Arc::new(charlie_client.clone()),
         });
     }
 

@@ -83,14 +83,13 @@ mod tests {
             .request_arbitration(fulfillment_uid, test.bob.address())
             .await?;
 
+        let bob_client = test.bob_client.clone();
         let decisions = test
             .bob_client
             .oracle()
             .arbitrate_past_sync(
-                |attestation| {
-                    let obligation = test
-                        .bob_client
-                        .oracle()
+                move |attestation| {
+                    let obligation = bob_client
                         .extract_obligation_data::<StringObligation::ObligationData>(attestation)
                         .ok()?;
                     Some(obligation.item == "good")
@@ -134,14 +133,13 @@ mod tests {
             .request_arbitration(bad_fulfillment, test.bob.address())
             .await?;
 
+        let bob_client = test.bob_client.clone();
         let decisions = test
             .bob_client
             .oracle()
             .arbitrate_past_sync(
-                |attestation| {
-                    let obligation = test
-                        .bob_client
-                        .oracle()
+                move |attestation| {
+                    let obligation = bob_client
                         .extract_obligation_data::<StringObligation::ObligationData>(attestation)
                         .ok()?;
                     Some(obligation.item == "good")
@@ -177,14 +175,13 @@ mod tests {
             .await?;
 
         // First arbitration
+        let bob_client = test.bob_client.clone();
         let decisions = test
             .bob_client
             .oracle()
             .arbitrate_past_sync(
-                |attestation| {
-                    let obligation = test
-                        .bob_client
-                        .oracle()
+                move |attestation| {
+                    let obligation = bob_client
                         .extract_obligation_data::<StringObligation::ObligationData>(attestation)
                         .ok()?;
                     Some(obligation.item == "good")
@@ -199,14 +196,13 @@ mod tests {
         assert_eq!(decisions.len(), 1);
 
         // Second arbitration with skip_arbitrated should find nothing
+        let bob_client2 = test.bob_client.clone();
         let decisions = test
             .bob_client
             .oracle()
             .arbitrate_past_sync(
-                |attestation| {
-                    let obligation = test
-                        .bob_client
-                        .oracle()
+                move |attestation| {
+                    let obligation = bob_client2
                         .extract_obligation_data::<StringObligation::ObligationData>(attestation)
                         .ok()?;
                     Some(obligation.item == "good")
@@ -236,16 +232,16 @@ mod tests {
             .request_arbitration(fulfillment_uid, test.bob.address())
             .await?;
 
-        let oracle_client = test.bob_client.oracle().clone();
+        let bob_client = Arc::new(test.bob_client.clone());
         let decisions = test
             .bob_client
             .oracle()
             .arbitrate_past_async(
-                |attestation| {
-                    let oracle = oracle_client.clone();
+                move |attestation| {
+                    let client = bob_client.clone();
                     let attestation = attestation.clone();
                     async move {
-                        let obligation = oracle
+                        let obligation = client
                             .extract_obligation_data::<StringObligation::ObligationData>(&attestation)
                             .ok()?;
                         Some(obligation.item == "good")
@@ -366,16 +362,16 @@ mod tests {
             .request_arbitration(fulfillment_uid, test.bob.address())
             .await?;
 
-        let oracle_client = test.bob_client.oracle().clone();
+        let bob_client = Arc::new(test.bob_client.clone());
         let result = test
             .bob_client
             .oracle()
             .listen_and_arbitrate_async(
                 move |attestation| {
-                    let oracle = oracle_client.clone();
+                    let client = bob_client.clone();
                     let attestation = attestation.clone();
                     async move {
-                        let obligation = oracle
+                        let obligation = client
                             .extract_obligation_data::<StringObligation::ObligationData>(&attestation)
                             .ok()?;
                         Some(obligation.item == "good")

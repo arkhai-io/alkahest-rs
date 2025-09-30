@@ -143,13 +143,6 @@ pub struct Decision {
     pub receipt: TransactionReceipt,
 }
 
-sol! {
-    struct ArbiterDemand {
-        address oracle;
-        bytes demand;
-    }
-}
-
 pub struct ListenAndArbitrateResult {
     pub decisions: Vec<Decision>,
     pub subscription_id: FixedBytes<32>,
@@ -178,6 +171,8 @@ impl OracleModule {
     }
 
     /// Extract obligation data from a fulfillment attestation
+    ///
+    /// Note: This is a convenience wrapper. The same method is available on the top-level client.
     pub fn extract_obligation_data<ObligationData: SolType>(
         &self,
         attestation: &Attestation,
@@ -186,6 +181,8 @@ impl OracleModule {
     }
 
     /// Get the escrow attestation that this fulfillment references
+    ///
+    /// Note: This is a convenience wrapper. The same method is available on the top-level client.
     pub async fn get_escrow_attestation(
         &self,
         fulfillment: &Attestation,
@@ -196,15 +193,26 @@ impl OracleModule {
     }
 
     /// Extract demand data from an escrow attestation
+    ///
+    /// Note: This is a convenience wrapper. The same method is available on the top-level client.
     pub fn extract_demand_data<DemandData: SolType>(
         &self,
         escrow_attestation: &Attestation,
     ) -> eyre::Result<DemandData::RustType> {
+        use alloy::sol;
+        sol! {
+            struct ArbiterDemand {
+                address oracle;
+                bytes demand;
+            }
+        }
         let arbiter_demand = ArbiterDemand::abi_decode(&escrow_attestation.data)?;
         DemandData::abi_decode(&arbiter_demand.demand).map_err(Into::into)
     }
 
     /// Get escrow attestation and extract demand data in one call
+    ///
+    /// Note: This is a convenience wrapper. The same method is available on the top-level client.
     pub async fn get_escrow_and_demand<DemandData: SolType>(
         &self,
         fulfillment: &Attestation,

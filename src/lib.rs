@@ -1,4 +1,5 @@
 use alloy::{
+    dyn_abi::SolType,
     primitives::{Address, FixedBytes, Log},
     providers::Provider,
     rpc::types::{Filter, TransactionReceipt},
@@ -13,7 +14,7 @@ use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use sol_types::EscrowClaimed;
 use std::sync::Arc;
-use types::{PublicProvider, SharedPublicProvider, SharedWalletProvider, WalletProvider};
+use types::{SharedPublicProvider, SharedWalletProvider};
 
 use crate::clients::{
     arbiters::ArbitersAddresses, attestation::AttestationAddresses, erc20::Erc20Addresses,
@@ -380,6 +381,82 @@ impl<Extensions: AlkahestExtension> AlkahestClient<Extensions> {
         }
 
         Err(eyre::eyre!("No EscrowClaimed event found"))
+    }
+
+    /// Extract obligation data from a fulfillment attestation
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// use alkahest_rs::contracts::StringObligation;
+    ///
+    /// let obligation = client.extract_obligation_data::<StringObligation::ObligationData>(&attestation)?;
+    /// ```
+    pub fn extract_obligation_data<ObligationData: SolType>(
+        &self,
+        attestation: &contracts::IEAS::Attestation,
+    ) -> eyre::Result<ObligationData::RustType> {
+        ObligationData::abi_decode(&attestation.data).map_err(Into::into)
+    }
+
+    /// Get the escrow attestation that this fulfillment references via refUID
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let escrow_attestation = client.get_escrow_attestation(&fulfillment_attestation).await?;
+    /// ```
+    pub async fn get_escrow_attestation(
+        &self,
+        fulfillment: &contracts::IEAS::Attestation,
+    ) -> eyre::Result<contracts::IEAS::Attestation>
+    where
+        Extensions: extensions::HasAttestation,
+    {
+        let eas = contracts::IEAS::new(self.attestation().addresses.eas, &self.wallet_provider);
+        let escrow = eas.getAttestation(fulfillment.refUID).call().await?;
+        Ok(escrow)
+    }
+
+    /// Extract demand data from an escrow attestation
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// use alkahest_rs::clients::arbiters::TrustedOracleArbiter;
+    ///
+    /// let demand = client.extract_demand_data::<TrustedOracleArbiter::DemandData>(&escrow_attestation)?;
+    /// ```
+    pub fn extract_demand_data<DemandData: SolType>(
+        &self,
+        escrow_attestation: &contracts::IEAS::Attestation,
+    ) -> eyre::Result<DemandData::RustType> {
+        use alloy::sol;
+        sol! {
+            struct ArbiterDemand {
+                address oracle;
+                bytes demand;
+            }
+        }
+        let arbiter_demand = ArbiterDemand::abi_decode(&escrow_attestation.data)?;
+        DemandData::abi_decode(&arbiter_demand.demand).map_err(Into::into)
+    }
+
+    /// Get escrow attestation and extract demand data in one call
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// use alkahest_rs::clients::arbiters::TrustedOracleArbiter;
+    ///
+    /// let (escrow, demand) = client.get_escrow_and_demand::<TrustedOracleArbiter::DemandData>(&fulfillment).await?;
+    /// ```
+    pub async fn get_escrow_and_demand<DemandData: SolType>(
+        &self,
+        fulfillment: &contracts::IEAS::Attestation,
+    ) -> eyre::Result<(contracts::IEAS::Attestation, DemandData::RustType)>
+    where
+        Extensions: extensions::HasAttestation,
+    {
+        let escrow = self.get_escrow_attestation(fulfillment).await?;
+        let demand = self.extract_demand_data::<DemandData>(&escrow)?;
+        Ok((escrow, demand))
     }
 }
 
