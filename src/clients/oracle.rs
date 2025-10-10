@@ -10,10 +10,7 @@ use alloy::{
     sol,
     sol_types::SolEvent,
 };
-use futures::{
-    StreamExt as _,
-    future::try_join_all,
-};
+use futures::{StreamExt as _, future::try_join_all};
 use tokio::time::Duration;
 use tracing;
 
@@ -163,6 +160,34 @@ impl OracleModule {
         })
     }
 
+    pub async fn wait_for_arbitration(
+        &self,
+        obligation: FixedBytes<32>,
+        from_block: Option<u64>,
+    ) -> eyre::Result<Log<TrustedOracleArbiter::ArbitrationMade>> {
+        let filter = Filter::new()
+            .from_block(from_block.unwrap_or(0))
+            .address(self.addresses.trusted_oracle_arbiter)
+            .event_signature(TrustedOracleArbiter::ArbitrationMade::SIGNATURE_HASH)
+            .topic1(obligation);
+
+        let logs = self.public_provider.get_logs(&filter).await?;
+        if let Some(log) = logs.first() {
+            let decoded_log = log.log_decode::<TrustedOracleArbiter::ArbitrationMade>()?;
+            return Ok(decoded_log);
+        }
+
+        let sub = self.public_provider.subscribe_logs(&filter).await?;
+        let mut stream = sub.into_stream();
+
+        if let Some(log) = stream.next().await {
+            let decoded_log = log.log_decode::<TrustedOracleArbiter::ArbitrationMade>()?;
+            return Ok(decoded_log);
+        }
+
+        Err(eyre::eyre!("No ArbitrationMade event found"))
+    }
+
     pub async fn unsubscribe(&self, local_id: FixedBytes<32>) -> eyre::Result<()> {
         self.public_provider
             .unsubscribe(local_id)
@@ -254,10 +279,7 @@ impl OracleModule {
             .to_block(BlockNumberOrTag::Latest)
     }
 
-    fn make_arbitration_made_filter(
-        &self,
-        obligation: Option<FixedBytes<32>>,
-    ) -> Filter {
+    fn make_arbitration_made_filter(&self, obligation: Option<FixedBytes<32>>) -> Filter {
         let mut filter = Filter::new()
             .address(self.addresses.trusted_oracle_arbiter)
             .event_signature(TrustedOracleArbiter::ArbitrationMade::SIGNATURE_HASH)
@@ -399,20 +421,15 @@ impl OracleModule {
     {
         use futures::future::join_all;
 
-        let attestations = self
-            .get_arbitration_requested_attestations(options)
-            .await?;
+        let attestations = self.get_arbitration_requested_attestations(options).await?;
 
         let decision_futs = attestations.iter().map(|a| strategy.arbitrate(a));
         let decisions = join_all(decision_futs).await;
 
-        self.arbitrate_internal(decisions, attestations)
-            .await
+        self.arbitrate_internal(decisions, attestations).await
     }
 
-    pub async fn arbitrate_past_sync<
-        Arbitrate: Fn(&Attestation) -> Option<bool>,
-    >(
+    pub async fn arbitrate_past_sync<Arbitrate: Fn(&Attestation) -> Option<bool>>(
         &self,
         arbitrate: Arbitrate,
         options: &ArbitrateOptions,
@@ -684,8 +701,7 @@ impl OracleModule {
         } else {
             // Need to capture arbitrate for past arbitration
             let attestations = self.get_arbitration_requested_attestations(options).await?;
-            let decisions: Vec<Option<bool>> =
-                attestations.iter().map(|a| arbitrate(a)).collect();
+            let decisions: Vec<Option<bool>> = attestations.iter().map(|a| arbitrate(a)).collect();
             self.arbitrate_internal(decisions, attestations).await?
         };
 
@@ -694,13 +710,8 @@ impl OracleModule {
         let local_id = *sub.local_id();
         let stream: SubscriptionStream<Log> = sub.into_stream();
 
-        self.spawn_arbitration_listener_sync(
-            stream,
-            arbitrate,
-            on_after_arbitrate,
-            options,
-        )
-        .await;
+        self.spawn_arbitration_listener_sync(stream, arbitrate, on_after_arbitrate, options)
+            .await;
 
         Ok(ListenAndArbitrateResult {
             decisions,
@@ -735,13 +746,8 @@ impl OracleModule {
         let local_id = *sub.local_id();
         let stream: SubscriptionStream<Log> = sub.into_stream();
 
-        self.spawn_arbitration_listener_async(
-            stream,
-            arbitrate,
-            on_after_arbitrate,
-            options,
-        )
-        .await;
+        self.spawn_arbitration_listener_async(stream, arbitrate, on_after_arbitrate, options)
+            .await;
 
         Ok(ListenAndArbitrateResult {
             decisions,

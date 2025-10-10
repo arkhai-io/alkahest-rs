@@ -9,10 +9,11 @@ mod tests {
         types::{ArbiterData, Erc20Data},
         utils::TestContext,
     };
-    use alloy::{
-        primitives::{FixedBytes, bytes},
+    use alloy::primitives::{FixedBytes, bytes};
+    use std::{
+        sync::Arc,
+        time::{Duration, SystemTime, UNIX_EPOCH},
     };
-    use std::{sync::Arc, time::{Duration, SystemTime, UNIX_EPOCH}};
 
     use {
         alkahest_rs::clients::arbiters::{ArbitersModule, TrustedOracleArbiter},
@@ -242,7 +243,9 @@ mod tests {
                     let attestation = attestation.clone();
                     async move {
                         let obligation = client
-                            .extract_obligation_data::<StringObligation::ObligationData>(&attestation)
+                            .extract_obligation_data::<StringObligation::ObligationData>(
+                                &attestation,
+                            )
                             .ok()?;
                         Some(obligation.item == "good")
                     }
@@ -338,8 +341,18 @@ mod tests {
             .request_arbitration(fulfillment_uid, test.bob.address())
             .await?;
 
-        // Give it a moment to process
-        tokio::time::sleep(Duration::from_secs(2)).await;
+        test.bob_client
+            .oracle()
+            .wait_for_arbitration(fulfillment_uid, None)
+            .await?;
+
+        let collection = test
+            .bob_client
+            .erc20()
+            .collect_escrow(escrow_uid, fulfillment_uid)
+            .await?;
+
+        println!("✅ Arbitrate decision passed. Tx: {:?}", collection);
 
         test.bob_client
             .oracle()
@@ -372,7 +385,9 @@ mod tests {
                     let attestation = attestation.clone();
                     async move {
                         let obligation = client
-                            .extract_obligation_data::<StringObligation::ObligationData>(&attestation)
+                            .extract_obligation_data::<StringObligation::ObligationData>(
+                                &attestation,
+                            )
                             .ok()?;
                         Some(obligation.item == "good")
                     }
@@ -387,6 +402,19 @@ mod tests {
 
         assert_eq!(result.decisions.len(), 1);
         assert_eq!(result.decisions[0].decision, true);
+
+        test.bob_client
+            .oracle()
+            .wait_for_arbitration(fulfillment_uid, None)
+            .await?;
+
+        let collection = test
+            .bob_client
+            .erc20()
+            .collect_escrow(escrow_uid, fulfillment_uid)
+            .await?;
+
+        println!("✅ Arbitrate decision passed. Tx: {:?}", collection);
 
         test.bob_client
             .oracle()
@@ -431,6 +459,19 @@ mod tests {
 
         assert_eq!(result.decisions.len(), 1);
         assert_eq!(result.decisions[0].decision, true);
+
+        test.bob_client
+            .oracle()
+            .wait_for_arbitration(fulfillment_uid, None)
+            .await?;
+
+        let collection = test
+            .bob_client
+            .erc20()
+            .collect_escrow(escrow_uid, fulfillment_uid)
+            .await?;
+
+        println!("✅ Arbitrate decision passed. Tx: {:?}", collection);
 
         Ok(())
     }
@@ -478,6 +519,19 @@ mod tests {
             1,
             "Only one should be approved"
         );
+
+        test.bob_client
+            .oracle()
+            .wait_for_arbitration(good_fulfillment, None)
+            .await?;
+
+        let collection = test
+            .bob_client
+            .erc20()
+            .collect_escrow(escrow_uid, good_fulfillment)
+            .await?;
+
+        println!("✅ Arbitrate decision passed. Tx: {:?}", collection);
 
         test.bob_client
             .oracle()
