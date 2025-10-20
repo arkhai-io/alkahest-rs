@@ -8,7 +8,6 @@ use alloy::{
     primitives::{Address, FixedBytes, Log},
     providers::Provider as _,
     rpc::types::{Filter, TransactionReceipt},
-    sol,
     sol_types::SolEvent as _,
 };
 use futures_util::StreamExt as _;
@@ -16,7 +15,17 @@ use serde::{Deserialize, Serialize};
 
 pub mod attestation_properties;
 pub mod confirmation;
+pub mod intrinsics_arbiter2;
 pub mod logical;
+pub mod specific_attestation_arbiter;
+pub mod trusted_oracle_arbiter;
+pub mod trusted_party_arbiter;
+
+// Re-export the core arbiters
+pub use intrinsics_arbiter2::*;
+pub use specific_attestation_arbiter::*;
+pub use trusted_oracle_arbiter::*;
+pub use trusted_party_arbiter::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ArbitersAddresses {
@@ -133,41 +142,6 @@ impl AlkahestExtension for ArbitersModule {
     }
 }
 
-sol! {
-    contract TrustedPartyArbiter {
-        struct DemandData {
-            address baseArbiter;
-            bytes baseDemand;
-            address creator;
-        }
-    }
-}
-
-sol! {
-    contract SpecificAttestationArbiter {
-        struct DemandData {
-            bytes32 uid;
-        }
-    }
-}
-
-sol! {
-    contract TrustedOracleArbiter {
-        struct DemandData {
-            address oracle;
-            bytes data;
-        }
-    }
-}
-
-sol! {
-    contract IntrinsicsArbiter2 {
-        struct DemandData {
-            bytes32 schema;
-        }
-    }
-}
-
 #[macro_export]
 macro_rules! impl_encode_and_decode {
     ($contract:ident, $encode_fn:ident, $decode_fn:ident) => {
@@ -186,27 +160,6 @@ macro_rules! impl_encode_and_decode {
         }
     };
 }
-
-impl_encode_and_decode!(
-    TrustedPartyArbiter,
-    encode_trusted_party_arbiter_demand,
-    decode_trusted_party_arbiter_demand
-);
-impl_encode_and_decode!(
-    SpecificAttestationArbiter,
-    encode_specific_attestation_arbiter_demand,
-    decode_specific_attestation_arbiter_demand
-);
-impl_encode_and_decode!(
-    TrustedOracleArbiter,
-    encode_trusted_oracle_arbiter_demand,
-    decode_trusted_oracle_arbiter_demand
-);
-impl_encode_and_decode!(
-    IntrinsicsArbiter2,
-    encode_intrinsics_arbiter2_demand,
-    decode_intrinsics_arbiter2_demand
-);
 
 impl ArbitersModule {
     pub fn new(
