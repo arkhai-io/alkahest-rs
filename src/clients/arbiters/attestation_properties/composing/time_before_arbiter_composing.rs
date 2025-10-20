@@ -1,3 +1,4 @@
+use crate::clients::arbiters::ArbitersModule;
 use alloy::sol;
 
 sol! {
@@ -12,6 +13,13 @@ sol! {
 
 crate::impl_encode_and_decode!(
     TimeBeforeArbiterComposing,
+    encode_time_before_arbiter_composing_demand,
+    decode_time_before_arbiter_composing_demand
+);
+
+crate::impl_arbiter_api!(
+    TimeBeforeArbiterComposingApi,
+    TimeBeforeArbiterComposing::DemandData,
     encode_time_before_arbiter_composing_demand,
     decode_time_before_arbiter_composing_demand
 );

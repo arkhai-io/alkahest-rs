@@ -1,4 +1,4 @@
-use crate::impl_encode_and_decode;
+use crate::{clients::arbiters::ArbitersModule, impl_arbiter_api, impl_encode_and_decode};
 use alloy::sol;
 
 sol! {
@@ -11,6 +11,13 @@ sol! {
 
 impl_encode_and_decode!(
     SpecificAttestationArbiter,
+    encode_specific_attestation_arbiter_demand,
+    decode_specific_attestation_arbiter_demand
+);
+
+impl_arbiter_api!(
+    SpecificAttestationArbiterApi,
+    SpecificAttestationArbiter::DemandData,
     encode_specific_attestation_arbiter_demand,
     decode_specific_attestation_arbiter_demand
 );

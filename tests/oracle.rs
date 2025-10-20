@@ -4,7 +4,7 @@ mod tests {
         DefaultAlkahestClient,
         clients::oracle::ArbitrateOptions,
         contracts::StringObligation,
-        extensions::{HasErc20, HasOracle, HasStringObligation},
+        extensions::{HasArbiters, HasErc20, HasOracle, HasStringObligation},
         fixtures::MockERC20Permit,
         types::{ArbiterData, Erc20Data},
         utils::TestContext,
@@ -358,7 +358,6 @@ mod tests {
             .oracle()
             .unsubscribe(result.subscription_id)
             .await?;
-
         Ok(())
     }
 
