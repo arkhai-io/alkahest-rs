@@ -1,6 +1,6 @@
-use crate::{
+use crate::{clients::arbiters::ArbitersModule, 
     contracts::attester_arbiters::non_composing::AttesterArbiter::DemandData,
-    impl_encode_and_decode,
+    impl_encode_and_decode, impl_arbiter_api
 };
 
 impl From<DemandData> for alloy::primitives::Bytes {
@@ -31,4 +31,11 @@ impl_encode_and_decode!(
     DemandData,
     encode_attester_arbiter_non_composing_demand,
     decode_attester_arbiter_non_composing_demand
+);
+impl_arbiter_api!(
+    AttesterArbiterNonComposing,
+    DemandData,
+    encode_attester_arbiter_non_composing_demand,
+    decode_attester_arbiter_non_composing_demand,
+    attester_arbiter_non_composing
 );

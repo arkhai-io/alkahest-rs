@@ -1,5 +1,5 @@
-use crate::{
-    contracts::extended_uid_arbiters::composing::UidArbiter::DemandData, impl_encode_and_decode,
+use crate::{clients::arbiters::ArbitersModule, 
+    contracts::extended_uid_arbiters::composing::UidArbiter::DemandData, impl_encode_and_decode, impl_arbiter_api
 };
 
 impl From<DemandData> for alloy::primitives::Bytes {
@@ -30,4 +30,11 @@ impl_encode_and_decode!(
     DemandData,
     encode_uid_arbiter_composing_demand,
     decode_uid_arbiter_composing_demand
+);
+impl_arbiter_api!(
+    UidArbiterComposing,
+    DemandData,
+    encode_uid_arbiter_composing_demand,
+    decode_uid_arbiter_composing_demand,
+    uid_arbiter_composing
 );

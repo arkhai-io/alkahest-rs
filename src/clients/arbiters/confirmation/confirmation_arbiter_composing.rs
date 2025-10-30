@@ -1,5 +1,6 @@
 use crate::{
-    contracts::confirmation_arbiters::ConfirmationArbiterComposing::DemandData,
+    clients::arbiters::ArbitersModule,
+    contracts::confirmation_arbiters::ConfirmationArbiterComposing::DemandData, impl_arbiter_api,
     impl_encode_and_decode,
 };
 
@@ -31,4 +32,11 @@ impl_encode_and_decode!(
     DemandData,
     encode_confirmation_arbiter_composing_demand,
     decode_confirmation_arbiter_composing_demand
+);
+impl_arbiter_api!(
+    ConfirmationArbiterComposing,
+    DemandData,
+    encode_confirmation_arbiter_composing_demand,
+    decode_confirmation_arbiter_composing_demand,
+    confirmation_arbiter_composing
 );

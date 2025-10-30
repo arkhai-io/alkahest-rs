@@ -1,5 +1,7 @@
-use crate::clients::arbiters::ArbitersModule;
-use crate::{contracts::AllArbiter::DemandData, impl_encode_and_decode};
+use crate::{
+    clients::arbiters::ArbitersModule, contracts::AllArbiter::DemandData, impl_arbiter_api,
+    impl_encode_and_decode,
+};
 
 impl From<DemandData> for alloy::primitives::Bytes {
     fn from(demand: DemandData) -> Self {
@@ -30,4 +32,11 @@ impl_encode_and_decode!(
     DemandData,
     encode_all_arbiter_demand,
     decode_all_arbiter_demand
+);
+impl_arbiter_api!(
+    AllArbiter,
+    DemandData,
+    encode_all_arbiter_demand,
+    decode_all_arbiter_demand,
+    all_arbiter
 );

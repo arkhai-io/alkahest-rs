@@ -1,6 +1,6 @@
-use crate::{
+use crate::{clients::arbiters::ArbitersModule, 
     contracts::time_arbiters::before::non_composing::TimeBeforeArbiter::DemandData,
-    impl_encode_and_decode,
+    impl_encode_and_decode, impl_arbiter_api
 };
 
 impl From<DemandData> for alloy::primitives::Bytes {
@@ -32,4 +32,11 @@ impl_encode_and_decode!(
     DemandData,
     encode_time_before_arbiter_non_composing_demand,
     decode_time_before_arbiter_non_composing_demand
+);
+impl_arbiter_api!(
+    TimeBeforeArbiterNonComposing,
+    DemandData,
+    encode_time_before_arbiter_non_composing_demand,
+    decode_time_before_arbiter_non_composing_demand,
+    time_before_arbiter_non_composing
 );

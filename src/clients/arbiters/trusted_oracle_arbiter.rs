@@ -1,4 +1,7 @@
-use crate::{contracts::TrustedOracleArbiter::DemandData, impl_encode_and_decode};
+use crate::{
+    clients::arbiters::ArbitersModule, contracts::TrustedOracleArbiter::DemandData,
+    impl_arbiter_api, impl_encode_and_decode,
+};
 
 impl From<DemandData> for alloy::primitives::Bytes {
     fn from(demand: DemandData) -> Self {
@@ -29,4 +32,12 @@ impl_encode_and_decode!(
     DemandData,
     encode_trusted_oracle_arbiter_demand,
     decode_trusted_oracle_arbiter_demand
+);
+
+impl_arbiter_api!(
+    TrustedOracleArbiter,
+    DemandData,
+    encode_trusted_oracle_arbiter_demand,
+    decode_trusted_oracle_arbiter_demand,
+    trusted_oracle_arbiter
 );

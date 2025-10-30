@@ -1,4 +1,4 @@
-use crate::{contracts::NotArbiter::DemandData, impl_encode_and_decode};
+use crate::{clients::arbiters::ArbitersModule, contracts::NotArbiter::DemandData, impl_encode_and_decode, impl_arbiter_api};
 
 impl From<DemandData> for alloy::primitives::Bytes {
     fn from(demand: DemandData) -> Self {
@@ -29,4 +29,11 @@ impl_encode_and_decode!(
     DemandData,
     encode_not_arbiter_demand,
     decode_not_arbiter_demand
+);
+impl_arbiter_api!(
+    NotArbiter,
+    DemandData,
+    encode_not_arbiter_demand,
+    decode_not_arbiter_demand,
+    not_arbiter
 );

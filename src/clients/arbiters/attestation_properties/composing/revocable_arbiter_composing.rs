@@ -1,5 +1,7 @@
 use crate::{
-    contracts::revocable_arbiters::composing::RevocableArbiter::DemandData, impl_encode_and_decode,
+    clients::arbiters::ArbitersModule,
+    contracts::revocable_arbiters::composing::RevocableArbiter::DemandData, impl_arbiter_api,
+    impl_encode_and_decode,
 };
 
 impl From<DemandData> for alloy::primitives::Bytes {
@@ -30,4 +32,11 @@ impl_encode_and_decode!(
     DemandData,
     encode_revocable_arbiter_composing_demand,
     decode_revocable_arbiter_composing_demand
+);
+impl_arbiter_api!(
+    RevocableArbiterComposing,
+    DemandData,
+    encode_revocable_arbiter_composing_demand,
+    decode_revocable_arbiter_composing_demand,
+    revocable_arbiter_composing
 );

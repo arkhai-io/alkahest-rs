@@ -1,6 +1,7 @@
 use crate::{
+    clients::arbiters::ArbitersModule,
     contracts::expiration_time_arbiters::after::composing::ExpirationTimeAfterArbiter::DemandData,
-    impl_encode_and_decode,
+    impl_arbiter_api, impl_encode_and_decode,
 };
 
 impl From<DemandData> for alloy::primitives::Bytes {
@@ -32,4 +33,11 @@ impl_encode_and_decode!(
     DemandData,
     encode_expiration_time_after_arbiter_composing_demand,
     decode_expiration_time_after_arbiter_composing_demand
+);
+impl_arbiter_api!(
+    ExpirationTimeAfterArbiterComposing,
+    DemandData,
+    encode_expiration_time_after_arbiter_composing_demand,
+    decode_expiration_time_after_arbiter_composing_demand,
+    expiration_time_after_arbiter_composing
 );
