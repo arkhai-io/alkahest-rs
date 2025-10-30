@@ -41,7 +41,7 @@ async fn test_recipient_arbiter_with_incorrect_recipient() -> eyre::Result<()> {
 
     // Create demand data expecting Alice as recipient
     let alice_address = test.alice.address();
-    let demand_data = RecipientArbiterComposing::DemandData {
+    let demand_data = contracts::attestation_properties::composing::RecipientArbiter::DemandData {
         baseArbiter: test.addresses.arbiters_addresses.clone().trivial_arbiter,
         baseDemand: Bytes::from(vec![]),
         recipient: alice_address, // Different from attestation.recipient which is Bob
@@ -82,7 +82,7 @@ async fn test_recipient_arbiter_with_correct_recipient() -> eyre::Result<()> {
     let attestation = create_test_attestation(None, Some(recipient));
 
     // Create demand data with the correct recipient and TrivialArbiter as base arbiter
-    let demand_data = RecipientArbiterComposing::DemandData {
+    let demand_data = contracts::attestation_properties::composing::RecipientArbiter::DemandData {
         baseArbiter: test.addresses.arbiters_addresses.clone().trivial_arbiter,
         baseDemand: Bytes::from(vec![]),
         recipient,
@@ -122,7 +122,7 @@ async fn test_encode_and_decode_recipient_arbiter_demand() -> eyre::Result<()> {
     let base_demand = Bytes::from(vec![1, 2, 3]);
     let recipient = test.alice.address();
 
-    let demand_data = RecipientArbiterComposing::DemandData {
+    let demand_data = contracts::attestation_properties::composing::RecipientArbiter::DemandData {
         baseArbiter: base_arbiter,
         baseDemand: base_demand.clone(),
         recipient,

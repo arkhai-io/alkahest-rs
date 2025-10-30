@@ -2,8 +2,7 @@ use alkahest_rs::{
     clients::arbiters::{
         ArbitersModule, IntrinsicsArbiter2, SpecificAttestationArbiter, TrustedOracleArbiter,
         TrustedPartyArbiter,
-    },
-    utils::setup_test_environment,
+    }, contracts, utils::setup_test_environment
 };
 use alloy::primitives::{Address, Bytes, FixedBytes, bytes};
 
@@ -16,7 +15,7 @@ async fn test_encode_and_decode_trusted_party_demand() -> eyre::Result<()> {
     let creator = Address::from_slice(&[0x01; 20]);
     let base_arbiter = test.addresses.arbiters_addresses.trivial_arbiter;
 
-    let demand_data = TrustedPartyArbiter::DemandData {
+    let demand_data = contracts::TrustedPartyArbiter::DemandData {
         baseArbiter: base_arbiter,
         baseDemand: Bytes::from(vec![1, 2, 3]),
         creator,
@@ -49,7 +48,7 @@ async fn test_encode_and_decode_specific_attestation_arbiter_demand() -> eyre::R
 
     // Create a test demand data
     let uid = FixedBytes::<32>::from_slice(&[1u8; 32]);
-    let demand_data = SpecificAttestationArbiter::DemandData { uid };
+    let demand_data = contracts::SpecificAttestationArbiter::DemandData { uid };
 
     // Encode the demand data
     let encoded = ArbitersModule::encode_specific_attestation_arbiter_demand(&demand_data);
@@ -70,7 +69,7 @@ async fn test_encode_and_decode_trusted_oracle_arbiter_demand() -> eyre::Result<
 
     // Create a test demand data
     let oracle = test.bob.address();
-    let demand_data = TrustedOracleArbiter::DemandData {
+    let demand_data = contracts::TrustedOracleArbiter::DemandData {
         oracle,
         data: bytes!(""),
     };
@@ -91,7 +90,7 @@ async fn test_encode_and_decode_trusted_oracle_arbiter_demand() -> eyre::Result<
 async fn test_encode_and_decode_intrinsics_arbiter2_demand() -> eyre::Result<()> {
     // Create a test demand data
     let schema = FixedBytes::<32>::from_slice(&[1u8; 32]);
-    let demand_data = IntrinsicsArbiter2::DemandData { schema };
+    let demand_data = contracts::IntrinsicsArbiter2::DemandData { schema };
 
     // Encode the demand data
     let encoded = ArbitersModule::encode_intrinsics_arbiter2_demand(&demand_data);

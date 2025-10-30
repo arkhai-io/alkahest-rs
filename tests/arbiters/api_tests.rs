@@ -1,10 +1,11 @@
 use alkahest_rs::{
-    clients::arbiters::{
-        TrustedOracleArbiter,
+    clients::arbiters::attestation_properties::{composing::*, non_composing::*},
+    contracts::{
+        self, TrustedOracleArbiter,
         attestation_properties::{composing::*, non_composing::*},
-        confirmation::ConfirmationArbiterComposing,
+        confirmation_arbiters::*,
+        logical::*,
     },
-    contracts,
     extensions::HasArbiters,
     utils::setup_test_environment,
 };
@@ -17,7 +18,7 @@ async fn test_comprehensive_arbiter_api() -> eyre::Result<()> {
     let arbiters = test.alice_client.arbiters();
 
     // Test core arbiters
-    let oracle_demand = TrustedOracleArbiter::DemandData {
+    let oracle_demand = contracts::TrustedOracleArbiter::DemandData {
         oracle: test.bob.address(),
         data: Bytes::from(b"test".as_slice()),
     };
@@ -26,7 +27,7 @@ async fn test_comprehensive_arbiter_api() -> eyre::Result<()> {
     assert_eq!(decoded_oracle.oracle, oracle_demand.oracle);
 
     // Test logical arbiters - arbiters.logical().all().encode()
-    let all_demand = contracts::AllArbiter::DemandData {
+    let all_demand = AllArbiter::DemandData {
         arbiters: vec![test.addresses.arbiters_addresses.trivial_arbiter],
         demands: vec![Bytes::from(b"test".as_slice())],
     };
@@ -53,11 +54,12 @@ async fn test_comprehensive_arbiter_api() -> eyre::Result<()> {
     );
 
     // Test attestation properties - arbiters.attestation_properties().composing().recipient().encode()
-    let recipient_demand = RecipientArbiterComposing::DemandData {
-        baseArbiter: test.addresses.arbiters_addresses.trivial_arbiter,
-        baseDemand: Bytes::from(b"test".as_slice()),
-        recipient: test.alice.address(),
-    };
+    let recipient_demand =
+        contracts::attestation_properties::composing::RecipientArbiter::DemandData {
+            baseArbiter: test.addresses.arbiters_addresses.trivial_arbiter,
+            baseDemand: Bytes::from(b"test".as_slice()),
+            recipient: test.alice.address(),
+        };
     let encoded_recipient = arbiters
         .attestation_properties()
         .composing()
@@ -89,7 +91,7 @@ async fn test_all_attestation_properties_composing_arbiters() -> eyre::Result<()
     // Test all attestation properties composing arbiters
 
     // Test recipient arbiter
-    let recipient_demand = RecipientArbiterComposing::DemandData {
+    let recipient_demand = contracts::attestation_properties::composing::RecipientArbiter::DemandData {
         baseArbiter: test.addresses.arbiters_addresses.trivial_arbiter,
         baseDemand: Bytes::from(b"test".as_slice()),
         recipient: test.alice.address(),
@@ -100,7 +102,7 @@ async fn test_all_attestation_properties_composing_arbiters() -> eyre::Result<()
 
     // Test uid arbiter
     let uid = FixedBytes::<32>::from_slice(&[1u8; 32]);
-    let uid_demand = UidArbiterComposing::DemandData {
+    let uid_demand = contracts::attestation_properties::composing::UidArbiter::DemandData {
         baseArbiter: test.addresses.arbiters_addresses.trivial_arbiter,
         baseDemand: Bytes::from(b"test".as_slice()),
         uid,
@@ -110,7 +112,7 @@ async fn test_all_attestation_properties_composing_arbiters() -> eyre::Result<()
     assert_eq!(decoded.uid, uid_demand.uid);
 
     // Test attester arbiter
-    let attester_demand = AttesterArbiterComposing::DemandData {
+    let attester_demand = contracts::attestation_properties::composing::AttesterArbiter::DemandData {
         baseArbiter: test.addresses.arbiters_addresses.trivial_arbiter,
         baseDemand: Bytes::from(b"test".as_slice()),
         attester: test.bob.address(),
@@ -121,7 +123,7 @@ async fn test_all_attestation_properties_composing_arbiters() -> eyre::Result<()
 
     // Test schema arbiter
     let schema = FixedBytes::<32>::from_slice(&[2u8; 32]);
-    let schema_demand = SchemaArbiterComposing::DemandData {
+    let schema_demand = contracts::attestation_properties::composing::SchemaArbiter::DemandData {
         baseArbiter: test.addresses.arbiters_addresses.trivial_arbiter,
         baseDemand: Bytes::from(b"test".as_slice()),
         schema,
@@ -132,7 +134,7 @@ async fn test_all_attestation_properties_composing_arbiters() -> eyre::Result<()
 
     // Test time arbiters
     let time_value = 1234567890u64;
-    let time_after_demand = TimeAfterArbiterComposing::DemandData {
+    let time_after_demand = contracts::attestation_properties::composing::TimeAfterArbiter::DemandData {
         baseArbiter: test.addresses.arbiters_addresses.trivial_arbiter,
         baseDemand: Bytes::from(b"test".as_slice()),
         time: time_value.into(),
@@ -168,7 +170,7 @@ async fn test_all_attestation_properties_non_composing_arbiters() -> eyre::Resul
     // Test all attestation properties non-composing arbiters
 
     // Test recipient arbiter
-    let recipient_demand = RecipientArbiterNonComposing::DemandData {
+    let recipient_demand = contracts::attestation_properties::non_composing::RecipientArbiter::DemandData {
         recipient: test.alice.address(),
     };
     let encoded = props.recipient().encode(&recipient_demand);
@@ -177,49 +179,56 @@ async fn test_all_attestation_properties_non_composing_arbiters() -> eyre::Resul
 
     // Test uid arbiter
     let uid = FixedBytes::<32>::from_slice(&[1u8; 32]);
-    let uid_demand = UidArbiterNonComposing::DemandData { uid };
+    let uid_demand =
+        contracts::attestation_properties::non_composing::UidArbiter::DemandData {
+            uid,
+        };
     let encoded = props.uid().encode(&uid_demand);
     let decoded = props.uid().decode(&encoded)?;
     assert_eq!(decoded.uid, uid_demand.uid);
 
     // Test attester arbiter
-    let attester_demand = AttesterArbiterNonComposing::DemandData {
-        attester: test.bob.address(),
-    };
+    let attester_demand =
+        contracts::attestation_properties::non_composing::AttesterArbiter::DemandData {
+            attester: test.bob.address(),
+        };
     let encoded = props.attester().encode(&attester_demand);
     let decoded = props.attester().decode(&encoded)?;
     assert_eq!(decoded.attester, attester_demand.attester);
 
     // Test schema arbiter
     let schema = FixedBytes::<32>::from_slice(&[2u8; 32]);
-    let schema_demand = SchemaArbiterNonComposing::DemandData { schema };
+    let schema_demand =
+        contracts::attestation_properties::non_composing::SchemaArbiter::DemandData {
+            schema,
+        };
     let encoded = props.schema().encode(&schema_demand);
     let decoded = props.schema().decode(&encoded)?;
     assert_eq!(decoded.schema, schema_demand.schema);
 
     // Test revocable arbiter
-    let revocable_demand = RevocableArbiterNonComposing::DemandData { revocable: true };
+    let revocable_demand = contracts::attestation_properties::non_composing::RevocableArbiter::DemandData { revocable: true };
     let encoded = props.revocable().encode(&revocable_demand);
     let decoded = props.revocable().decode(&encoded)?;
     assert_eq!(decoded.revocable, revocable_demand.revocable);
 
     // Test time arbiters
     let time_value = 1234567890u64;
-    let time_after_demand = TimeAfterArbiterNonComposing::DemandData {
+    let time_after_demand = contracts::attestation_properties::non_composing::TimeAfterArbiter::DemandData {
         time: time_value.into(),
     };
     let encoded = props.time_after().encode(&time_after_demand);
     let decoded = props.time_after().decode(&encoded)?;
     assert_eq!(decoded.time, time_after_demand.time);
 
-    let time_before_demand = TimeBeforeArbiterNonComposing::DemandData {
+    let time_before_demand = contracts::attestation_properties::non_composing::TimeBeforeArbiter::DemandData {
         time: time_value.into(),
     };
     let encoded = props.time_before().encode(&time_before_demand);
     let decoded = props.time_before().decode(&encoded)?;
     assert_eq!(decoded.time, time_before_demand.time);
 
-    let time_equal_demand = TimeEqualArbiterNonComposing::DemandData {
+    let time_equal_demand = contracts::attestation_properties::non_composing::TimeEqualArbiter::DemandData {
         time: time_value.into(),
     };
     let encoded = props.time_equal().encode(&time_equal_demand);
@@ -227,7 +236,7 @@ async fn test_all_attestation_properties_non_composing_arbiters() -> eyre::Resul
     assert_eq!(decoded.time, time_equal_demand.time);
 
     // Test expiration time arbiters
-    let expiration_time_after_demand = ExpirationTimeAfterArbiterNonComposing::DemandData {
+    let expiration_time_after_demand = contracts::attestation_properties::non_composing::ExpirationTimeAfterArbiter::DemandData {
         expirationTime: time_value.into(),
     };
     let encoded = props
@@ -239,7 +248,7 @@ async fn test_all_attestation_properties_non_composing_arbiters() -> eyre::Resul
         expiration_time_after_demand.expirationTime
     );
 
-    let expiration_time_before_demand = ExpirationTimeBeforeArbiterNonComposing::DemandData {
+    let expiration_time_before_demand = contracts::attestation_properties::non_composing::ExpirationTimeBeforeArbiter::DemandData {
         expirationTime: time_value.into(),
     };
     let encoded = props
@@ -251,7 +260,7 @@ async fn test_all_attestation_properties_non_composing_arbiters() -> eyre::Resul
         expiration_time_before_demand.expirationTime
     );
 
-    let expiration_time_equal_demand = ExpirationTimeEqualArbiterNonComposing::DemandData {
+    let expiration_time_equal_demand = contracts::attestation_properties::non_composing::ExpirationTimeEqualArbiter::DemandData {
         expirationTime: time_value.into(),
     };
     let encoded = props
@@ -265,7 +274,7 @@ async fn test_all_attestation_properties_non_composing_arbiters() -> eyre::Resul
 
     // Test ref_uid arbiter
     let ref_uid = FixedBytes::<32>::from_slice(&[3u8; 32]);
-    let ref_uid_demand = RefUidArbiterNonComposing::DemandData { refUID: ref_uid };
+    let ref_uid_demand = contracts::attestation_properties::non_composing::RefUidArbiter::DemandData { refUID: ref_uid };
     let encoded = props.ref_uid().encode(&ref_uid_demand);
     let decoded = props.ref_uid().decode(&encoded)?;
     assert_eq!(decoded.refUID, ref_uid_demand.refUID);
@@ -302,7 +311,7 @@ async fn test_simple_arbiter_api() -> eyre::Result<()> {
     let arbiters = test.alice_client.arbiters();
 
     // Test TrustedOracleArbiter API
-    let oracle_demand = TrustedOracleArbiter::DemandData {
+    let oracle_demand = contracts::TrustedOracleArbiter::DemandData {
         oracle: test.bob.address(),
         data: Bytes::from(b"test_data".as_slice()),
     };
@@ -312,7 +321,7 @@ async fn test_simple_arbiter_api() -> eyre::Result<()> {
     assert_eq!(decoded.oracle, oracle_demand.oracle, "Oracle should match");
 
     // Test logical.all API
-    let all_demand = contracts::AllArbiter::DemandData {
+    let all_demand = contracts::logical::AllArbiter::DemandData {
         arbiters: vec![test.addresses.arbiters_addresses.trivial_arbiter],
         demands: vec![Bytes::from(b"test".as_slice())],
     };

@@ -14,15 +14,13 @@ use crate::{
         string_obligation::StringObligationAddresses, token_bundle::TokenBundleAddresses,
     },
     contracts::{
-        AllArbiter, AnyArbiter, AttestationBarterUtils, AttestationEscrowObligation,
-        AttestationEscrowObligation2, ERC20EscrowObligation, ERC20PaymentObligation,
-        ERC721EscrowObligation, ERC721PaymentObligation, ERC1155EscrowObligation,
-        ERC1155PaymentObligation, IntrinsicsArbiter, IntrinsicsArbiter2, NotArbiter,
-        RecipientArbiter, SpecificAttestationArbiter, StringObligation, TokenBundleBarterUtils,
-        TrivialArbiter, TrustedOracleArbiter, TrustedPartyArbiter,
-        attester_arbiters::{
-            composing::AttesterArbiterComposing, non_composing::AttesterArbiterNonComposing,
-        },
+        AttestationBarterUtils, AttestationEscrowObligation, AttestationEscrowObligation2,
+        ERC20EscrowObligation, ERC20PaymentObligation, ERC721EscrowObligation,
+        ERC721PaymentObligation, ERC1155EscrowObligation, ERC1155PaymentObligation,
+        IntrinsicsArbiter, IntrinsicsArbiter2, RecipientArbiter, SpecificAttestationArbiter,
+        StringObligation, TokenBundleBarterUtils, TrivialArbiter, TrustedOracleArbiter,
+        TrustedPartyArbiter,
+        attestation_properties::{composing::*, non_composing::*},
         confirmation_arbiters::{
             ConfirmationArbiter, ConfirmationArbiterComposing, RevocableConfirmationArbiter,
             RevocableConfirmationArbiterComposing, UnrevocableConfirmationArbiter,
@@ -31,49 +29,10 @@ use crate::{
         erc20_barter_cross_token::ERC20BarterCrossToken,
         erc721_barter_cross_token::ERC721BarterCrossToken,
         erc1155_barter_cross_token::ERC1155BarterCrossToken,
-        expiration_time_arbiters::{
-            after::{
-                composing::ExpirationTimeAfterArbiterComposing,
-                non_composing::ExpirationTimeAfterArbiterNonComposing,
-            },
-            before::{
-                composing::ExpirationTimeBeforeArbiterComposing,
-                non_composing::ExpirationTimeBeforeArbiterNonComposing,
-            },
-            equal::{
-                composing::ExpirationTimeEqualArbiterComposing,
-                non_composing::ExpirationTimeEqualArbiterNonComposing,
-            },
-        },
-        extended_recipient_arbiters::{
-            composing::RecipientArbiterComposing, non_composing::RecipientArbiterNonComposing,
-        },
-        extended_uid_arbiters::{
-            composing::UidArbiterComposing, non_composing::UidArbiterNonComposing,
-        },
+        logical::*,
         payment_fulfillment_arbiters::{
             ERC20PaymentFulfillmentArbiter, ERC721PaymentFulfillmentArbiter,
             ERC1155PaymentFulfillmentArbiter, TokenBundlePaymentFulfillmentArbiter,
-        },
-        ref_uid_arbiters::{
-            composing::RefUidArbiterComposing, non_composing::RefUidArbiterNonComposing,
-        },
-        revocable_arbiters::{
-            composing::RevocableArbiterComposing, non_composing::RevocableArbiterNonComposing,
-        },
-        schema_arbiters::{
-            composing::SchemaArbiterComposing, non_composing::SchemaArbiterNonComposing,
-        },
-        time_arbiters::{
-            after::{
-                composing::TimeAfterArbiterComposing, non_composing::TimeAfterArbiterNonComposing,
-            },
-            before::{
-                composing::TimeBeforeArbiterComposing, non_composing::TimeBeforeArbiterNonComposing,
-            },
-            equal::{
-                composing::TimeEqualArbiterComposing, non_composing::TimeEqualArbiterNonComposing,
-            },
         },
         token_bundle::{TokenBundleEscrowObligation, TokenBundlePaymentObligation},
     },

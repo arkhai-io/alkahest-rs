@@ -13,7 +13,7 @@ use alkahest_rs::{
         arbiters::{ArbitersModule, TrustedOracleArbiter},
         oracle::ArbitrateOptions,
     },
-    contracts::StringObligation,
+    contracts::{self, StringObligation},
     extensions::{HasArbiters, HasErc20, HasOracle, HasStringObligation},
     fixtures::MockERC20Permit,
     types::{ArbiterData, Erc20Data},
@@ -88,7 +88,7 @@ fn schedule_pings(
         };
 
         // Get escrow and extract demand
-        let Ok((_, demand)) = ctx.client.get_escrow_and_demand::<TrustedOracleArbiter::DemandData>(&attestation).await
+        let Ok((_, demand)) = ctx.client.get_escrow_and_demand::<contracts::TrustedOracleArbiter::DemandData>(&attestation).await
         else {
             return None;
         };
@@ -135,7 +135,7 @@ async fn setup_escrow_with_uptime_demand(
         .await?;
 
     let encoded_demand =
-        ArbitersModule::encode_trusted_oracle_arbiter_demand(&TrustedOracleArbiter::DemandData {
+        ArbitersModule::encode_trusted_oracle_arbiter_demand(&contracts::TrustedOracleArbiter::DemandData {
             oracle,
             data: Bytes::from(serde_json::to_vec(demand)?),
         });

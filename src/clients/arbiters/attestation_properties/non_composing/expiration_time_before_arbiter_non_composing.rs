@@ -1,4 +1,8 @@
-use crate::{clients::arbiters::ArbitersModule, contracts::expiration_time_arbiters::before::non_composing::ExpirationTimeBeforeArbiter::DemandData, impl_encode_and_decode, impl_arbiter_api};
+use crate::{
+    clients::arbiters::ArbitersModule,
+    contracts::attestation_properties::non_composing::ExpirationTimeBeforeArbiter::DemandData,
+    impl_arbiter_api, impl_encode_and_decode,
+};
 
 impl From<DemandData> for alloy::primitives::Bytes {
     fn from(demand: DemandData) -> Self {

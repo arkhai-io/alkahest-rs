@@ -45,13 +45,13 @@ async fn test_any_arbiter() -> eyre::Result<()> {
     // Create different demand data for different arbiters
 
     // SpecificAttestationArbiter with matching UID (will return true)
-    let specific_matching = SpecificAttestationArbiter::DemandData { uid };
+    let specific_matching = contracts::SpecificAttestationArbiter::DemandData { uid };
     let specific_matching_encoded =
         ArbitersModule::encode_specific_attestation_arbiter_demand(&specific_matching);
 
     // SpecificAttestationArbiter with non-matching UID (will return false/error)
     let non_matching_uid = FixedBytes::<32>::from_slice(&[2u8; 32]);
-    let specific_non_matching = SpecificAttestationArbiter::DemandData {
+    let specific_non_matching = contracts::SpecificAttestationArbiter::DemandData {
         uid: non_matching_uid,
     };
     let specific_non_matching_encoded =
@@ -59,10 +59,10 @@ async fn test_any_arbiter() -> eyre::Result<()> {
 
     // Set up AnyArbiter with two arbiters
     let any_arbiter =
-        contracts::AnyArbiter::new(addresses.any_arbiter, &test.alice_client.wallet_provider);
+        contracts::logical::AnyArbiter::new(addresses.any_arbiter, &test.alice_client.wallet_provider);
 
     // Test case 1: One true, one false - should return true
-    let any_demand_data1 = AnyArbiter::DemandData {
+    let any_demand_data1 = contracts::logical::AnyArbiter::DemandData {
         arbiters: vec![
             addresses.trivial_arbiter,              // Always returns true
             addresses.specific_attestation_arbiter, // Will return false with non-matching UID
@@ -89,7 +89,7 @@ async fn test_any_arbiter() -> eyre::Result<()> {
     );
 
     // Test case 2: Both false - should return false
-    let any_demand_data2 = AnyArbiter::DemandData {
+    let any_demand_data2 = contracts::logical::AnyArbiter::DemandData {
         arbiters: vec![
             addresses.specific_attestation_arbiter, // Will return false with non-matching UID
             addresses.specific_attestation_arbiter, // Will return false with non-matching UID
@@ -117,7 +117,7 @@ async fn test_any_arbiter() -> eyre::Result<()> {
     );
 
     // Test case 3: All true - should return true
-    let any_demand_data3 = AnyArbiter::DemandData {
+    let any_demand_data3 = contracts::logical::AnyArbiter::DemandData {
         arbiters: vec![
             addresses.trivial_arbiter,              // Always returns true
             addresses.specific_attestation_arbiter, // Will return true with matching UID
@@ -157,7 +157,7 @@ async fn test_encode_and_decode_any_arbiter_demand() -> eyre::Result<()> {
     ];
     let demands = vec![Bytes::default(), Bytes::from(vec![1, 2, 3])];
 
-    let demand_data = AnyArbiter::DemandData { arbiters, demands };
+    let demand_data = contracts::logical::AnyArbiter::DemandData { arbiters, demands };
 
     // Encode the demand data
     let encoded = ArbitersModule::encode_any_arbiter_demand(&demand_data);
@@ -206,7 +206,7 @@ async fn test_any_arbiter_trait_based_encoding() -> eyre::Result<()> {
     ];
     let demands = vec![Bytes::default(), Bytes::from(vec![1, 2, 3])];
 
-    let demand_data = AnyArbiter::DemandData {
+    let demand_data = contracts::logical::AnyArbiter::DemandData {
         arbiters: arbiters.clone(),
         demands: demands.clone(),
     };
@@ -215,10 +215,10 @@ async fn test_any_arbiter_trait_based_encoding() -> eyre::Result<()> {
     let encoded_bytes: alloy::primitives::Bytes = demand_data.clone().into();
 
     // Test TryFrom trait: &Bytes -> DemandData
-    let decoded_from_ref: AnyArbiter::DemandData = (&encoded_bytes).try_into()?;
+    let decoded_from_ref: contracts::logical::AnyArbiter::DemandData = (&encoded_bytes).try_into()?;
 
     // Test TryFrom trait: Bytes -> DemandData
-    let decoded_from_owned: AnyArbiter::DemandData = encoded_bytes.try_into()?;
+    let decoded_from_owned: contracts::logical::AnyArbiter::DemandData = encoded_bytes.try_into()?;
 
     // Verify both decoded versions match original
     assert_eq!(

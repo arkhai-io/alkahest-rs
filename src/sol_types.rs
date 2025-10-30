@@ -5,10 +5,10 @@ use alloy::{
 
 use crate::{
     contracts::{
-        self, AllArbiter, AnyArbiter, AttestationBarterUtils, AttestationEscrowObligation, IEAS,
-        IntrinsicsArbiter, IntrinsicsArbiter2, RecipientArbiter, SpecificAttestationArbiter,
-        TrivialArbiter, TrustedOracleArbiter, TrustedPartyArbiter,
-        extended_uid_arbiters::composing::UidArbiterComposing,
+        self, AttestationBarterUtils, AttestationEscrowObligation, IEAS, IntrinsicsArbiter,
+        IntrinsicsArbiter2, RecipientArbiter, SpecificAttestationArbiter, TrivialArbiter,
+        TrustedOracleArbiter, TrustedPartyArbiter,
+        attestation_properties::composing::UidArbiterComposing, logical::*,
     },
     types::{ArbiterData, TokenBundleData},
 };

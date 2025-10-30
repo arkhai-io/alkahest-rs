@@ -1,5 +1,5 @@
 use crate::{
-    clients::arbiters::ArbitersModule, contracts::AllArbiter::DemandData, impl_arbiter_api,
+    clients::arbiters::ArbitersModule, contracts::logical::AllArbiter::DemandData, impl_arbiter_api,
     impl_encode_and_decode,
 };
 

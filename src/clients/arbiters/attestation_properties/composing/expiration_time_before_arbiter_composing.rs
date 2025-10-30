@@ -1,7 +1,7 @@
 use crate::{
     clients::arbiters::ArbitersModule,
-    contracts::expiration_time_arbiters::before::composing::ExpirationTimeBeforeArbiter::DemandData,
-    impl_encode_and_decode, impl_arbiter_api
+    contracts::attestation_properties::composing::ExpirationTimeBeforeArbiter::DemandData,
+    impl_arbiter_api, impl_encode_and_decode,
 };
 
 impl From<DemandData> for alloy::primitives::Bytes {

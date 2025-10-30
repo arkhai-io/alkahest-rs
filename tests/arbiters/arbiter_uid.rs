@@ -40,7 +40,7 @@ async fn test_uid_arbiter_with_incorrect_uid() -> eyre::Result<()> {
     // Create demand data with non-matching UID
     let different_uid = FixedBytes::<32>::from_slice(&[2u8; 32]);
     let trivial_arbiter = test.addresses.arbiters_addresses.clone().trivial_arbiter;
-    let demand_data = UidArbiterComposing::DemandData {
+    let demand_data = contracts::attestation_properties::composing::UidArbiter::DemandData {
         baseArbiter: trivial_arbiter,
         baseDemand: Bytes::default(),
         uid: different_uid,
@@ -51,7 +51,7 @@ async fn test_uid_arbiter_with_incorrect_uid() -> eyre::Result<()> {
 
     // Check obligation should revert with UidMismatched
     let uid_arbiter_address = test.addresses.arbiters_addresses.clone().uid_arbiter;
-    let uid_arbiter = contracts::extended_uid_arbiters::composing::UidArbiterComposing::new(
+    let uid_arbiter = contracts::attestation_properties::composing::UidArbiterComposing::new(
         uid_arbiter_address,
         &test.alice_client.public_provider,
     );
@@ -80,7 +80,7 @@ async fn test_uid_arbiter_with_correct_uid() -> eyre::Result<()> {
 
     // Create demand data with matching UID and use trivialArbiter as the baseArbiter
     let trivial_arbiter = test.addresses.arbiters_addresses.clone().trivial_arbiter;
-    let demand_data = UidArbiterComposing::DemandData {
+    let demand_data = contracts::attestation_properties::composing::UidArbiter::DemandData {
         baseArbiter: trivial_arbiter,
         baseDemand: Bytes::default(),
         uid,
@@ -91,7 +91,7 @@ async fn test_uid_arbiter_with_correct_uid() -> eyre::Result<()> {
 
     // Check obligation - should return true
     let uid_arbiter_address = test.addresses.arbiters_addresses.clone().uid_arbiter;
-    let uid_arbiter = contracts::extended_uid_arbiters::composing::UidArbiterComposing::new(
+    let uid_arbiter = contracts::attestation_properties::composing::UidArbiterComposing::new(
         uid_arbiter_address,
         &test.alice_client.public_provider,
     );
@@ -113,7 +113,7 @@ async fn test_encode_and_decode_uid_arbiter_composing_demand() -> eyre::Result<(
     // Create a test demand data
     let uid = FixedBytes::<32>::from_slice(&[1u8; 32]);
     let trivial_arbiter = test.addresses.arbiters_addresses.clone().trivial_arbiter;
-    let demand_data = UidArbiterComposing::DemandData {
+    let demand_data = contracts::attestation_properties::composing::UidArbiter::DemandData {
         baseArbiter: trivial_arbiter,
         baseDemand: Bytes::default(),
         uid,

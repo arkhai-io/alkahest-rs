@@ -1,5 +1,5 @@
 use crate::{clients::arbiters::ArbitersModule, 
-    contracts::ref_uid_arbiters::non_composing::RefUidArbiter::DemandData, impl_encode_and_decode, impl_arbiter_api
+    contracts::attestation_properties::non_composing::RefUidArbiter::DemandData, impl_encode_and_decode, impl_arbiter_api
 };
 
 impl From<DemandData> for alloy::primitives::Bytes {

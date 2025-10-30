@@ -21,7 +21,7 @@ async fn test_trusted_oracle_arbiter_constructor() -> eyre::Result<()> {
     let attestation = create_test_attestation(Some(obligation_uid), None);
 
     // Create demand data with oracle as bob
-    let demand_data = TrustedOracleArbiter::DemandData {
+    let demand_data = contracts::TrustedOracleArbiter::DemandData {
         oracle: test.bob.address(),
         data: bytes!(""),
     };
@@ -61,7 +61,7 @@ async fn test_trusted_oracle_arbiter_arbitrate() -> eyre::Result<()> {
     let attestation = create_test_attestation(Some(obligation_uid), None);
 
     // Create demand data with oracle as bob
-    let demand_data = TrustedOracleArbiter::DemandData {
+    let demand_data = contracts::TrustedOracleArbiter::DemandData {
         oracle: test.bob.address(),
         data: bytes!(""),
     };
@@ -162,7 +162,7 @@ async fn test_trusted_oracle_arbiter_with_different_oracles() -> eyre::Result<()
     );
 
     // Check with oracle1 (Bob) - should be true
-    let demand_data1 = TrustedOracleArbiter::DemandData {
+    let demand_data1 = contracts::TrustedOracleArbiter::DemandData {
         oracle: oracle1,
         data: bytes!(""),
     };
@@ -177,7 +177,7 @@ async fn test_trusted_oracle_arbiter_with_different_oracles() -> eyre::Result<()
     assert!(result1, "Decision for Oracle 1 (Bob) should be true");
 
     // Check with oracle2 (Alice) - should be false
-    let demand_data2 = TrustedOracleArbiter::DemandData {
+    let demand_data2 = contracts::TrustedOracleArbiter::DemandData {
         oracle: oracle2,
         data: bytes!(""),
     };
@@ -206,7 +206,7 @@ async fn test_trusted_oracle_arbiter_with_no_decision() -> eyre::Result<()> {
     let attestation = create_test_attestation(Some(obligation_uid), None);
 
     // Create demand data with the new oracle
-    let demand_data = TrustedOracleArbiter::DemandData {
+    let demand_data = contracts::TrustedOracleArbiter::DemandData {
         oracle: new_oracle,
         data: bytes!(""),
     };
@@ -257,7 +257,7 @@ async fn test_wait_for_trusted_oracle_arbitration() -> eyre::Result<()> {
     });
 
     // Ensure the listener is running
-    // tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
     // Make an arbitration decision
     let arbitrate_hash = test
@@ -293,28 +293,28 @@ async fn test_wait_for_trusted_oracle_arbitration() -> eyre::Result<()> {
 #[test]
 fn test_trusted_oracle_arbiter_static_encode_raw_decode_raw() {
     use alkahest_rs::clients::arbiters::{
-        TrustedOracleArbiterApi,
+        TrustedOracleArbiter,
         trusted_oracle_arbiter::TrustedOracleArbiter as TrustedOracleArbiterContract,
     };
     use alloy::primitives::{Address, Bytes};
 
     // Test the new static encode_raw and decode_raw functions
-    let oracle_demand = TrustedOracleArbiterContract::DemandData {
+    let oracle_demand = contracts::TrustedOracleArbiter::DemandData {
         oracle: Address::from([10u8; 20]),
         data: Bytes::from(vec![10, 11, 12, 13, 14]),
     };
 
     // Test static functions
-    let encoded = TrustedOracleArbiterApi::encode_raw(&oracle_demand);
-    let decoded = TrustedOracleArbiterApi::decode_raw(&encoded).unwrap();
+    let encoded = TrustedOracleArbiter::encode_raw(&oracle_demand);
+    let decoded = TrustedOracleArbiter::decode_raw(&encoded).unwrap();
 
     assert_eq!(decoded.oracle, oracle_demand.oracle);
     assert_eq!(decoded.data, oracle_demand.data);
 
     // Test that static and instance methods produce the same result
-    let api = TrustedOracleArbiterApi;
+    let api = TrustedOracleArbiter;
     let encoded_instance = api.encode(&oracle_demand);
-    let encoded_static = TrustedOracleArbiterApi::encode_raw(&oracle_demand);
+    let encoded_static = TrustedOracleArbiter::encode_raw(&oracle_demand);
 
     assert_eq!(encoded_instance, encoded_static);
 }
@@ -322,26 +322,26 @@ fn test_trusted_oracle_arbiter_static_encode_raw_decode_raw() {
 #[test]
 fn test_trusted_oracle_arbiter_api_usage_examples() {
     use alkahest_rs::clients::arbiters::{
-        TrustedOracleArbiterApi,
+        TrustedOracleArbiter,
         trusted_oracle_arbiter::TrustedOracleArbiter as TrustedOracleArbiterContract,
     };
     use alloy::primitives::{Address, Bytes};
 
     // Example 1: Using static functions directly
-    let oracle_demand = TrustedOracleArbiterContract::DemandData {
+    let oracle_demand = contracts::TrustedOracleArbiter::DemandData {
         oracle: Address::ZERO,
         data: Bytes::from(vec![1, 2, 3]),
     };
 
     // Static usage - no instance required
-    let encoded = TrustedOracleArbiterApi::encode_raw(&oracle_demand);
-    let decoded = TrustedOracleArbiterApi::decode_raw(&encoded).unwrap();
+    let encoded = TrustedOracleArbiter::encode_raw(&oracle_demand);
+    let decoded = TrustedOracleArbiter::decode_raw(&encoded).unwrap();
 
     assert_eq!(decoded.oracle, oracle_demand.oracle);
     assert_eq!(decoded.data, oracle_demand.data);
 
     // Example 2: Using instance methods (traditional way)
-    let api = TrustedOracleArbiterApi;
+    let api = TrustedOracleArbiter;
     let encoded_instance = api.encode(&oracle_demand);
     let decoded_instance = api.decode(&encoded_instance).unwrap();
 

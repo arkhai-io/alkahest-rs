@@ -1,6 +1,5 @@
 use alkahest_rs::{
-    clients::arbiters::{ArbitersModule, logical::not_arbiter::NotArbiter},
-    utils::setup_test_environment,
+    clients::arbiters::{ArbitersModule, logical::not_arbiter::NotArbiter}, contracts, utils::setup_test_environment
 };
 use alloy::primitives::{Address, Bytes, FixedBytes};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -36,7 +35,7 @@ async fn test_encode_and_decode_not_arbiter_demand() -> eyre::Result<()> {
     let base_arbiter = test.addresses.arbiters_addresses.trivial_arbiter;
     let base_demand = Bytes::from(vec![1, 2, 3, 4, 5]);
 
-    let demand_data = NotArbiter::DemandData {
+    let demand_data = contracts::logical::NotArbiter::DemandData {
         baseArbiter: base_arbiter,
         baseDemand: base_demand.clone(),
     };

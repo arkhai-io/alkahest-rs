@@ -15,7 +15,7 @@ async fn test_trusted_party_arbiter_with_incorrect_creator_original() -> eyre::R
     let attestation = create_test_attestation(None, None);
 
     // Create demand data with the correct creator
-    let demand_data = TrustedPartyArbiter::DemandData {
+    let demand_data = contracts::TrustedPartyArbiter::DemandData {
         baseArbiter: test.addresses.arbiters_addresses.clone().trivial_arbiter,
         baseDemand: Bytes::from(vec![]),
         creator: test.alice.address(),
@@ -59,7 +59,7 @@ async fn test_trusted_party_arbiter_with_incorrect_creator() -> eyre::Result<()>
     let attestation = create_test_attestation(None, Some(non_creator));
 
     // Create demand data with the correct creator
-    let demand_data = TrustedPartyArbiter::DemandData {
+    let demand_data = contracts::TrustedPartyArbiter::DemandData {
         baseArbiter: test.addresses.clone().arbiters_addresses.trivial_arbiter,
         baseDemand: Bytes::default(),
         creator,

@@ -17,7 +17,7 @@ async fn test_specific_attestation_arbiter_with_incorrect_uid_original() -> eyre
 
     // Create demand data with non-matching UID
     let different_uid = FixedBytes::<32>::from_slice(&[2u8; 32]);
-    let demand_data = SpecificAttestationArbiter::DemandData { uid: different_uid };
+    let demand_data = contracts::SpecificAttestationArbiter::DemandData { uid: different_uid };
 
     // Encode the demand data
     let encoded = ArbitersModule::encode_specific_attestation_arbiter_demand(&demand_data);
@@ -54,7 +54,7 @@ async fn test_specific_attestation_arbiter_with_incorrect_uid() -> eyre::Result<
 
     // Create demand data with non-matching UID
     let different_uid = FixedBytes::<32>::from_slice(&[2u8; 32]);
-    let demand_data = SpecificAttestationArbiter::DemandData { uid: different_uid };
+    let demand_data = contracts::SpecificAttestationArbiter::DemandData { uid: different_uid };
 
     // Encode demand data
     let demand = ArbitersModule::encode_specific_attestation_arbiter_demand(&demand_data);

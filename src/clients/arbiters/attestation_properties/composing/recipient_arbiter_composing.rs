@@ -1,5 +1,5 @@
 use crate::{clients::arbiters::ArbitersModule, 
-    contracts::extended_recipient_arbiters::composing::RecipientArbiter::DemandData,
+    contracts::attestation_properties::composing::RecipientArbiter::DemandData,
     impl_encode_and_decode, impl_arbiter_api
 };
 

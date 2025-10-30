@@ -132,12 +132,12 @@ async fn test_intrinsics_arbiter_2() -> eyre::Result<()> {
     );
 
     // Create demand with matching schema
-    let matching_demand = IntrinsicsArbiter2::DemandData { schema: schema1 };
+    let matching_demand = contracts::IntrinsicsArbiter2::DemandData { schema: schema1 };
     let encoded_matching_demand =
         ArbitersModule::encode_intrinsics_arbiter2_demand(&matching_demand);
 
     // Create demand with non-matching schema
-    let non_matching_demand = IntrinsicsArbiter2::DemandData { schema: schema2 };
+    let non_matching_demand = contracts::IntrinsicsArbiter2::DemandData { schema: schema2 };
     let encoded_non_matching_demand =
         ArbitersModule::encode_intrinsics_arbiter2_demand(&non_matching_demand);
 

@@ -1,6 +1,6 @@
 use crate::{
     clients::arbiters::ArbitersModule,
-    contracts::revocable_arbiters::composing::RevocableArbiter::DemandData, impl_arbiter_api,
+    contracts::attestation_properties::composing::RevocableArbiter::DemandData, impl_arbiter_api,
     impl_encode_and_decode,
 };
 

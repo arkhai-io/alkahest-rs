@@ -3,7 +3,7 @@ mod tests {
     use alkahest_rs::{
         DefaultAlkahestClient,
         clients::oracle::ArbitrateOptions,
-        contracts::StringObligation,
+        contracts::{self, StringObligation},
         extensions::{HasArbiters, HasErc20, HasOracle, HasStringObligation},
         fixtures::MockERC20Permit,
         types::{ArbiterData, Erc20Data},
@@ -38,7 +38,7 @@ mod tests {
 
         let arbiter = test.addresses.arbiters_addresses.trusted_oracle_arbiter;
 
-        let demand_data = TrustedOracleArbiter::DemandData {
+        let demand_data = contracts::TrustedOracleArbiter::DemandData {
             oracle: test.bob.address(),
             data: bytes!(""),
         };
