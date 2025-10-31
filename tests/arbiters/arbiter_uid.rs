@@ -130,3 +130,58 @@ async fn test_encode_and_decode_uid_arbiter_composing_demand() -> eyre::Result<(
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_uid_arbiter_composing_trait_based_encoding() -> eyre::Result<()> {
+    // Set up test environment
+    let test = setup_test_environment().await?;
+
+    let test_data = contracts::attestation_properties::composing::UidArbiter::DemandData {
+        baseArbiter: test.addresses.arbiters_addresses.trivial_arbiter,
+        baseDemand: Bytes::from(vec![1, 2, 3]),
+        uid: FixedBytes::<32>::from_slice(&[1u8; 32]),
+    };
+
+    // Test From trait: DemandData -> Bytes
+    let encoded_bytes: alloy::primitives::Bytes = test_data.clone().into();
+
+    // Test TryFrom trait: &Bytes -> DemandData
+    let decoded_from_ref: contracts::attestation_properties::composing::UidArbiter::DemandData =
+        (&encoded_bytes).try_into()?;
+
+    // Test TryFrom trait: Bytes -> DemandData
+    let decoded_from_owned: contracts::attestation_properties::composing::UidArbiter::DemandData =
+        encoded_bytes.clone().try_into()?;
+
+    // Verify both decoded versions match original
+    assert_eq!(
+        decoded_from_ref.baseArbiter, test_data.baseArbiter,
+        "Base arbiter should match (from ref)"
+    );
+    assert_eq!(
+        decoded_from_ref.baseDemand, test_data.baseDemand,
+        "Base demand should match (from ref)"
+    );
+    assert_eq!(
+        decoded_from_ref.uid, test_data.uid,
+        "UID should match (from ref)"
+    );
+
+    assert_eq!(
+        decoded_from_owned.baseArbiter, test_data.baseArbiter,
+        "Base arbiter should match (from owned)"
+    );
+    assert_eq!(
+        decoded_from_owned.baseDemand, test_data.baseDemand,
+        "Base demand should match (from owned)"
+    );
+    assert_eq!(
+        decoded_from_owned.uid, test_data.uid,
+        "UID should match (from owned)"
+    );
+
+    println!("Original -> Bytes -> DemandData conversions successful for UidArbiterComposing");
+    println!("Encoded bytes length: {}", encoded_bytes.len());
+
+    Ok(())
+}

@@ -150,3 +150,58 @@ async fn test_encode_and_decode_recipient_arbiter_demand() -> eyre::Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_recipient_arbiter_composing_trait_based_encoding() -> eyre::Result<()> {
+    // Set up test environment
+    let test = setup_test_environment().await?;
+
+    let test_data = contracts::attestation_properties::composing::RecipientArbiter::DemandData {
+        baseArbiter: test.addresses.arbiters_addresses.trivial_arbiter,
+        baseDemand: Bytes::from(vec![1, 2, 3]),
+        recipient: test.alice.address(),
+    };
+
+    // Test From trait: DemandData -> Bytes
+    let encoded_bytes: alloy::primitives::Bytes = test_data.clone().into();
+
+    // Test TryFrom trait: &Bytes -> DemandData
+    let decoded_from_ref: contracts::attestation_properties::composing::RecipientArbiter::DemandData = (&encoded_bytes).try_into()?;
+
+    // Test TryFrom trait: Bytes -> DemandData
+    let decoded_from_owned: contracts::attestation_properties::composing::RecipientArbiter::DemandData = encoded_bytes.clone().try_into()?;
+
+    // Verify both decoded versions match original
+    assert_eq!(
+        decoded_from_ref.baseArbiter, test_data.baseArbiter,
+        "Base arbiter should match (from ref)"
+    );
+    assert_eq!(
+        decoded_from_ref.baseDemand, test_data.baseDemand,
+        "Base demand should match (from ref)"
+    );
+    assert_eq!(
+        decoded_from_ref.recipient, test_data.recipient,
+        "Recipient should match (from ref)"
+    );
+
+    assert_eq!(
+        decoded_from_owned.baseArbiter, test_data.baseArbiter,
+        "Base arbiter should match (from owned)"
+    );
+    assert_eq!(
+        decoded_from_owned.baseDemand, test_data.baseDemand,
+        "Base demand should match (from owned)"
+    );
+    assert_eq!(
+        decoded_from_owned.recipient, test_data.recipient,
+        "Recipient should match (from owned)"
+    );
+
+    println!(
+        "Original -> Bytes -> DemandData conversions successful for RecipientArbiterComposing"
+    );
+    println!("Encoded bytes length: {}", encoded_bytes.len());
+
+    Ok(())
+}

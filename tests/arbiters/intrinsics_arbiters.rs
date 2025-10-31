@@ -172,3 +172,40 @@ async fn test_intrinsics_arbiter_2() -> eyre::Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_intrinsics_arbiter2_trait_based_encoding() -> eyre::Result<()> {
+    // Set up test environment
+    let test = setup_test_environment().await?;
+
+    let test_data = contracts::IntrinsicsArbiter2::DemandData {
+        schema: FixedBytes::<32>::from_slice(&[1u8; 32]),
+    };
+
+    // Test From trait: DemandData -> Bytes
+    let encoded_bytes: alloy::primitives::Bytes = test_data.clone().into();
+
+    // Test TryFrom trait: &Bytes -> DemandData
+    let decoded_from_ref: contracts::IntrinsicsArbiter2::DemandData =
+        (&encoded_bytes).try_into()?;
+
+    // Test TryFrom trait: Bytes -> DemandData
+    let decoded_from_owned: contracts::IntrinsicsArbiter2::DemandData =
+        encoded_bytes.clone().try_into()?;
+
+    // Verify both decoded versions match original
+    assert_eq!(
+        decoded_from_ref.schema, test_data.schema,
+        "Schema should match (from ref)"
+    );
+
+    assert_eq!(
+        decoded_from_owned.schema, test_data.schema,
+        "Schema should match (from owned)"
+    );
+
+    println!("Original -> Bytes -> DemandData conversions successful for IntrinsicsArbiter2");
+    println!("Encoded bytes length: {}", encoded_bytes.len());
+
+    Ok(())
+}

@@ -78,3 +78,42 @@ async fn test_specific_attestation_arbiter_with_incorrect_uid() -> eyre::Result<
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_specific_attestation_arbiter_trait_based_encoding() -> eyre::Result<()> {
+    // Set up test environment
+    let test = setup_test_environment().await?;
+
+    let test_data = contracts::SpecificAttestationArbiter::DemandData {
+        uid: FixedBytes::<32>::from_slice(&[1u8; 32]),
+    };
+
+    // Test From trait: DemandData -> Bytes
+    let encoded_bytes: alloy::primitives::Bytes = test_data.clone().into();
+
+    // Test TryFrom trait: &Bytes -> DemandData
+    let decoded_from_ref: contracts::SpecificAttestationArbiter::DemandData =
+        (&encoded_bytes).try_into()?;
+
+    // Test TryFrom trait: Bytes -> DemandData
+    let decoded_from_owned: contracts::SpecificAttestationArbiter::DemandData =
+        encoded_bytes.clone().try_into()?;
+
+    // Verify both decoded versions match original
+    assert_eq!(
+        decoded_from_ref.uid, test_data.uid,
+        "UID should match (from ref)"
+    );
+
+    assert_eq!(
+        decoded_from_owned.uid, test_data.uid,
+        "UID should match (from owned)"
+    );
+
+    println!(
+        "Original -> Bytes -> DemandData conversions successful for SpecificAttestationArbiter"
+    );
+    println!("Encoded bytes length: {}", encoded_bytes.len());
+
+    Ok(())
+}

@@ -85,3 +85,58 @@ async fn test_trusted_party_arbiter_with_incorrect_creator() -> eyre::Result<()>
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_trusted_party_arbiter_trait_based_encoding() -> eyre::Result<()> {
+    // Set up test environment
+    let test = setup_test_environment().await?;
+
+    let test_data = contracts::TrustedPartyArbiter::DemandData {
+        baseArbiter: test.addresses.arbiters_addresses.trivial_arbiter,
+        baseDemand: Bytes::from(vec![1, 2, 3]),
+        creator: test.alice.address(),
+    };
+
+    // Test From trait: DemandData -> Bytes
+    let encoded_bytes: alloy::primitives::Bytes = test_data.clone().into();
+
+    // Test TryFrom trait: &Bytes -> DemandData
+    let decoded_from_ref: contracts::TrustedPartyArbiter::DemandData =
+        (&encoded_bytes).try_into()?;
+
+    // Test TryFrom trait: Bytes -> DemandData
+    let decoded_from_owned: contracts::TrustedPartyArbiter::DemandData =
+        encoded_bytes.clone().try_into()?;
+
+    // Verify both decoded versions match original
+    assert_eq!(
+        decoded_from_ref.baseArbiter, test_data.baseArbiter,
+        "Base arbiter should match (from ref)"
+    );
+    assert_eq!(
+        decoded_from_ref.baseDemand, test_data.baseDemand,
+        "Base demand should match (from ref)"
+    );
+    assert_eq!(
+        decoded_from_ref.creator, test_data.creator,
+        "Creator should match (from ref)"
+    );
+
+    assert_eq!(
+        decoded_from_owned.baseArbiter, test_data.baseArbiter,
+        "Base arbiter should match (from owned)"
+    );
+    assert_eq!(
+        decoded_from_owned.baseDemand, test_data.baseDemand,
+        "Base demand should match (from owned)"
+    );
+    assert_eq!(
+        decoded_from_owned.creator, test_data.creator,
+        "Creator should match (from owned)"
+    );
+
+    println!("Original -> Bytes -> DemandData conversions successful for TrustedPartyArbiter");
+    println!("Encoded bytes length: {}", encoded_bytes.len());
+
+    Ok(())
+}
