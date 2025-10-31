@@ -258,15 +258,6 @@ macro_rules! impl_arbiter_api {
             pub fn address(&self, arbiters: &ArbitersModule) -> alloy::primitives::Address {
                 arbiters.addresses.$contract_field
             }
-
-            // Static functions that can be called without an instance
-            pub fn encode_raw(demand: &$demand_type) -> alloy::primitives::Bytes {
-                ArbitersModule::$encode_fn(demand)
-            }
-
-            pub fn decode_raw(data: &alloy::primitives::Bytes) -> eyre::Result<$demand_type> {
-                ArbitersModule::$decode_fn(data)
-            }
         }
     };
 }
