@@ -239,6 +239,37 @@ impl ArbitersModule {
 
 // --- Simple API macros -------------------------------------------------
 
+/// Macro to generate From/TryFrom implementations for DemandData types
+#[macro_export]
+macro_rules! impl_demand_data_conversions {
+    ($demand_type:ty) => {
+        impl From<$demand_type> for alloy::primitives::Bytes {
+            fn from(demand: $demand_type) -> Self {
+                use alloy::sol_types::SolValue as _;
+                demand.abi_encode().into()
+            }
+        }
+
+        impl TryFrom<&alloy::primitives::Bytes> for $demand_type {
+            type Error = eyre::Error;
+
+            fn try_from(data: &alloy::primitives::Bytes) -> Result<Self, Self::Error> {
+                use alloy::sol_types::SolValue as _;
+                Ok(Self::abi_decode(data)?)
+            }
+        }
+
+        impl TryFrom<alloy::primitives::Bytes> for $demand_type {
+            type Error = eyre::Error;
+
+            fn try_from(data: alloy::primitives::Bytes) -> Result<Self, Self::Error> {
+                use alloy::sol_types::SolValue as _;
+                Ok(Self::abi_decode(&data)?)
+            }
+        }
+    };
+}
+
 /// Macro to generate simple API accessors for arbiters
 #[macro_export]
 macro_rules! impl_arbiter_api {
