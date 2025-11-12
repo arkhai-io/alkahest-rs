@@ -1,4 +1,4 @@
-use alkahest_rs::{ contracts, utils::setup_test_environment};
+use alkahest_rs::{contracts, extensions::HasArbiters, utils::setup_test_environment};
 use alloy::primitives::{Address, Bytes, FixedBytes};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -138,12 +138,22 @@ async fn test_encode_and_decode_all_arbiter_demand() -> eyre::Result<()> {
     // Get arbiter addresses
     let addresses = test.addresses.arbiters_addresses;
 
+    // Create a test UID for SpecificAttestationArbiter
+    let test_uid = FixedBytes::<32>::from_slice(&[1u8; 32]);
+
+    // Create real demand data for each arbiter
+    let trivial_demand = Bytes::default(); // TrivialArbiter accepts empty bytes
+
+    let specific_attestation_demand_data =
+        contracts::SpecificAttestationArbiter::DemandData { uid: test_uid };
+    let specific_attestation_demand: Bytes = specific_attestation_demand_data.into();
+
     // Create a test demand data
     let arbiters = vec![
         addresses.trivial_arbiter,
         addresses.specific_attestation_arbiter,
     ];
-    let demands = vec![Bytes::default(), Bytes::from(vec![1, 2, 3])];
+    let demands = vec![trivial_demand, specific_attestation_demand];
 
     let demand_data = contracts::logical::AllArbiter::DemandData { arbiters, demands };
 
@@ -187,12 +197,22 @@ async fn test_all_arbiter_trait_based_encoding() -> eyre::Result<()> {
     // Get arbiter addresses
     let addresses = test.addresses.arbiters_addresses;
 
+    // Create a test UID for SpecificAttestationArbiter
+    let test_uid = FixedBytes::<32>::from_slice(&[1u8; 32]);
+
+    // Create real demand data for each arbiter
+    let trivial_demand = Bytes::default(); // TrivialArbiter accepts empty bytes
+
+    let specific_attestation_demand_data =
+        contracts::SpecificAttestationArbiter::DemandData { uid: test_uid };
+    let specific_attestation_demand: Bytes = specific_attestation_demand_data.into();
+
     // Create a test demand data
     let arbiters = vec![
         addresses.trivial_arbiter,
         addresses.specific_attestation_arbiter,
     ];
-    let demands = vec![Bytes::default(), Bytes::from(vec![1, 2, 3])];
+    let demands = vec![trivial_demand, specific_attestation_demand];
 
     let demand_data = contracts::logical::AllArbiter::DemandData {
         arbiters: arbiters.clone(),
@@ -253,6 +273,163 @@ async fn test_all_arbiter_trait_based_encoding() -> eyre::Result<()> {
             "Demand data should match (from owned)"
         );
     }
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_decode_all_arbiter_demands() -> eyre::Result<()> {
+    // Set up test environment
+    let test = setup_test_environment().await?;
+
+    // Get arbiter addresses
+    let addresses = test.addresses.arbiters_addresses;
+
+    // Create a test UID for SpecificAttestationArbiter
+    let test_uid = FixedBytes::<32>::from_slice(&[1u8; 32]);
+
+    // Create real demand data for each arbiter
+    let trivial_demand = Bytes::default(); // TrivialArbiter accepts empty bytes
+
+    let specific_attestation_demand_data =
+        contracts::SpecificAttestationArbiter::DemandData { uid: test_uid };
+    let specific_attestation_demand: Bytes = specific_attestation_demand_data.into();
+
+    // Create a test demand data
+    let arbiters = vec![
+        addresses.trivial_arbiter,
+        addresses.specific_attestation_arbiter,
+    ];
+    let demands = vec![trivial_demand, specific_attestation_demand];
+
+    let demand_data = contracts::logical::AllArbiter::DemandData { arbiters, demands };
+
+    // Test the decode_all_arbiter_demands function
+    let decoded_result = test
+        .alice_client
+        .arbiters()
+        .decode_all_arbiter_demands(demand_data.clone())?;
+
+    // Verify decoded structure
+    assert_eq!(
+        decoded_result.arbiters.len(),
+        demand_data.arbiters.len(),
+        "Number of arbiters should match"
+    );
+    assert_eq!(
+        decoded_result.demands.len(),
+        demand_data.demands.len(),
+        "Number of decoded demands should match"
+    );
+
+    // Verify original arbiter addresses are preserved
+    for i in 0..decoded_result.arbiters.len() {
+        assert_eq!(
+            decoded_result.arbiters[i], demand_data.arbiters[i],
+            "Arbiter address should match"
+        );
+    }
+
+    // Import the decoded types for assertions
+    use alkahest_rs::clients::arbiters::logical::DecodedDemand;
+
+    // Verify decoded demand types
+    match &decoded_result.demands[0] {
+        DecodedDemand::TrivialArbiter => {
+            // Expected - TrivialArbiter has no demand data
+        }
+        other => panic!("Expected TrivialArbiter, got {:?}", other),
+    }
+
+    match &decoded_result.demands[1] {
+        DecodedDemand::SpecificAttestation(demand_data) => {
+            assert_eq!(demand_data.uid, test_uid, "UID should match");
+        }
+        other => panic!("Expected SpecificAttestation, got {:?}", other),
+    }
+
+    println!("✅ Successfully decoded AllArbiter demands");
+    println!("   - TrivialArbiter: no demand data");
+    println!("   - SpecificAttestationArbiter: UID = {:?}", test_uid);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_decode_all_arbiter_demands_with_mixed_arbiters() -> eyre::Result<()> {
+    // Set up test environment
+    let test = setup_test_environment().await?;
+
+    // Get arbiter addresses
+    let addresses = test.addresses.arbiters_addresses;
+
+    // Create a test UID for SpecificAttestationArbiter
+    let test_uid = FixedBytes::<32>::from_slice(&[1u8; 32]);
+
+    // Create demand data for SpecificAttestationArbiter
+    let specific_attestation_demand_data =
+        contracts::SpecificAttestationArbiter::DemandData { uid: test_uid };
+    let specific_attestation_demand: Bytes = specific_attestation_demand_data.into();
+
+    // Create AllArbiter demand data with mixed arbiters (including ones with and without demand data)
+    let demand_data = contracts::logical::AllArbiter::DemandData {
+        arbiters: vec![
+            addresses.trivial_arbiter,              // No demand data (always true)
+            addresses.specific_attestation_arbiter, // Has demand data
+        ],
+        demands: vec![
+            Bytes::default(),            // Empty for TrivialArbiter
+            specific_attestation_demand, // Real demand for SpecificAttestationArbiter
+        ],
+    };
+
+    // Test the decode_all_arbiter_demands function
+    let decoded_result = test
+        .alice_client
+        .arbiters()
+        .decode_all_arbiter_demands(demand_data.clone())?;
+
+    // Import the decoded types for assertions
+    use alkahest_rs::clients::arbiters::logical::DecodedDemand;
+
+    // Verify decoded structure
+    assert_eq!(
+        decoded_result.arbiters.len(),
+        demand_data.arbiters.len(),
+        "Number of arbiters should match"
+    );
+    assert_eq!(
+        decoded_result.demands.len(),
+        demand_data.demands.len(),
+        "Number of decoded demands should match"
+    );
+
+    // Verify specific arbiters and their decoded demands
+    assert_eq!(
+        decoded_result.arbiters[0], addresses.trivial_arbiter,
+        "First arbiter should be TrivialArbiter"
+    );
+    assert_eq!(
+        decoded_result.arbiters[1], addresses.specific_attestation_arbiter,
+        "Second arbiter should be SpecificAttestationArbiter"
+    );
+
+    // Verify decoded demand types
+    match &decoded_result.demands[0] {
+        DecodedDemand::TrivialArbiter => {
+            // Expected - TrivialArbiter has no demand data
+        }
+        other => panic!("Expected TrivialArbiter, got {:?}", other),
+    }
+
+    match &decoded_result.demands[1] {
+        DecodedDemand::SpecificAttestation(demand_data) => {
+            assert_eq!(demand_data.uid, test_uid, "UID should match");
+        }
+        other => panic!("Expected SpecificAttestation, got {:?}", other),
+    }
+
+    println!("✅ Successfully decoded mixed AllArbiter demands with proper typing");
 
     Ok(())
 }
