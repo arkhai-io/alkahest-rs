@@ -10,4 +10,6 @@ pub mod any_arbiter;
 pub mod not_arbiter;
 
 // Re-export key types for easier access
-pub use all_arbiter::{DecodedAllArbiterDemandData, DecodedDemand};
+pub use all_arbiter::DecodedAllArbiterDemandData;
+pub use any_arbiter::DecodedAnyArbiterDemandData;
+pub use not_arbiter::DecodedNotArbiterDemandData;

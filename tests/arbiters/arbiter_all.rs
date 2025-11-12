@@ -162,7 +162,6 @@ async fn test_encode_and_decode_all_arbiter_demand() -> eyre::Result<()> {
 
     // Decode the demand data
     let decoded: contracts::logical::AllArbiter::DemandData = (&encoded).try_into()?;
-
     // Verify decoded data
     assert_eq!(
         decoded.arbiters.len(),
@@ -331,7 +330,7 @@ async fn test_decode_all_arbiter_demands() -> eyre::Result<()> {
     }
 
     // Import the decoded types for assertions
-    use alkahest_rs::clients::arbiters::logical::DecodedDemand;
+    use alkahest_rs::clients::arbiters::DecodedDemand;
 
     // Verify decoded demand types
     match &decoded_result.demands[0] {
@@ -390,7 +389,7 @@ async fn test_decode_all_arbiter_demands_with_mixed_arbiters() -> eyre::Result<(
         .decode_all_arbiter_demands(demand_data.clone())?;
 
     // Import the decoded types for assertions
-    use alkahest_rs::clients::arbiters::logical::DecodedDemand;
+    use alkahest_rs::clients::arbiters::DecodedDemand;
 
     // Verify decoded structure
     assert_eq!(
