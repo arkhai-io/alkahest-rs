@@ -1,5 +1,4 @@
 use crate::{
-    clients::arbiters::ArbitersModule,
     contracts::attestation_properties::non_composing::RevocableArbiter::DemandData,
     impl_demand_data_conversions,
 };

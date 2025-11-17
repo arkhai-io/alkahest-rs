@@ -77,9 +77,6 @@ async fn test_specific_attestation_arbiter_with_incorrect_uid() -> eyre::Result<
 
 #[tokio::test]
 async fn test_specific_attestation_arbiter_trait_based_encoding() -> eyre::Result<()> {
-    // Set up test environment
-    let test = setup_test_environment().await?;
-
     let test_data = contracts::SpecificAttestationArbiter::DemandData {
         uid: FixedBytes::<32>::from_slice(&[1u8; 32]),
     };

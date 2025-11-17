@@ -1,4 +1,3 @@
-use crate::arbiters::common::create_test_attestation;
 use alkahest_rs::{contracts, utils::setup_test_environment};
 use alloy::primitives::{Address, Bytes, FixedBytes};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -169,9 +168,6 @@ async fn test_intrinsics_arbiter_2() -> eyre::Result<()> {
 
 #[tokio::test]
 async fn test_intrinsics_arbiter2_trait_based_encoding() -> eyre::Result<()> {
-    // Set up test environment
-    let test = setup_test_environment().await?;
-
     let test_data = contracts::IntrinsicsArbiter2::DemandData {
         schema: FixedBytes::<32>::from_slice(&[1u8; 32]),
     };

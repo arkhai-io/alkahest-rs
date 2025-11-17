@@ -4,7 +4,7 @@ mod tests {
         DefaultAlkahestClient,
         clients::oracle::ArbitrateOptions,
         contracts::{self, StringObligation},
-        extensions::{HasArbiters, HasErc20, HasOracle, HasStringObligation},
+        extensions::{HasErc20, HasOracle, HasStringObligation},
         fixtures::MockERC20Permit,
         types::{ArbiterData, Erc20Data},
         utils::TestContext,
@@ -15,9 +15,7 @@ mod tests {
         time::{Duration, SystemTime, UNIX_EPOCH},
     };
 
-    use {
-        alkahest_rs::utils::setup_test_environment,
-    };
+    use alkahest_rs::utils::setup_test_environment;
 
     async fn setup_escrow(
         test: &TestContext,

@@ -1,6 +1,5 @@
 use alkahest_rs::{contracts, extensions::HasArbiters, utils::setup_test_environment};
-use alloy::primitives::{Address, Bytes, FixedBytes};
-use std::time::{SystemTime, UNIX_EPOCH};
+use alloy::primitives::Bytes;
 
 #[tokio::test]
 async fn test_encode_and_decode_not_arbiter_demand() -> eyre::Result<()> {

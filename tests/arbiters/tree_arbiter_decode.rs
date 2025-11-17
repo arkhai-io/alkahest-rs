@@ -174,7 +174,6 @@ async fn test_any_arbiter_nested_tree_decode() -> eyre::Result<()> {
     // Create multiple different composing arbiters as leaves
     let attester = Address::from_slice(&[10u8; 20]);
     let schema = FixedBytes::<32>::from_slice(&[20u8; 32]);
-    let time_after = 1640995200u64;
 
     // Create AttesterArbiter
     let attester_demand = AttesterArbiter::DemandData {

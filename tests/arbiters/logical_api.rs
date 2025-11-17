@@ -3,7 +3,7 @@ use alkahest_rs::{
     extensions::HasArbiters,
     utils::setup_test_environment,
 };
-use alloy::primitives::{Address, Bytes};
+use alloy::primitives::Bytes;
 
 /// Test the new structured logical API: arbiters_module.logical().all().decode()
 #[tokio::test]

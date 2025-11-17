@@ -1,6 +1,4 @@
 use alkahest_rs::{contracts, extensions::HasArbiters, utils::setup_test_environment};
-use alloy::primitives::{Address, Bytes, FixedBytes};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 #[tokio::test]
 async fn test_decode_confirmation_arbiter_composing_demands() -> eyre::Result<()> {

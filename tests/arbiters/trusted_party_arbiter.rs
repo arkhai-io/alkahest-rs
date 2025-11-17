@@ -1,9 +1,5 @@
 use crate::arbiters::common::create_test_attestation;
-use alkahest_rs::{
-    clients::arbiters::{ArbitersModule},
-    contracts,
-    utils::setup_test_environment,
-};
+use alkahest_rs::{contracts, utils::setup_test_environment};
 use alloy::primitives::{Address, Bytes, FixedBytes};
 
 #[tokio::test]
