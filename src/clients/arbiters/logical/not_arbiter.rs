@@ -16,6 +16,27 @@ pub struct DecodedNotArbiterDemandData {
     pub base_demand: Box<DecodedDemand>,
 }
 
+/// NotArbiter-specific API for convenient access to decode functionality
+pub struct NotArbiter<'a> {
+    module: &'a ArbitersModule,
+}
+
+impl<'a> NotArbiter<'a> {
+    pub fn new(module: &'a ArbitersModule) -> Self {
+        Self { module }
+    }
+
+    /// Decode NotArbiter demand data into structured format
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded = arbiters_module.logical().not().decode(demand_data)?;
+    /// ```
+    pub fn decode(&self, demand_data: DemandData) -> eyre::Result<DecodedNotArbiterDemandData> {
+        self.module.decode_not_arbiter_demands(demand_data)
+    }
+}
+
 impl ArbitersModule {
     pub fn decode_not_arbiter_demands(
         &self,

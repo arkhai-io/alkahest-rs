@@ -17,6 +17,31 @@ pub struct DecodedConfirmationArbiterComposingDemandData {
     pub base_demand: Box<DecodedDemand>,
 }
 
+/// ConfirmationArbiterComposing-specific API for convenient access to decode functionality
+pub struct ConfirmationArbiter<'a> {
+    module: &'a ArbitersModule,
+}
+
+impl<'a> ConfirmationArbiter<'a> {
+    pub fn new(module: &'a ArbitersModule) -> Self {
+        Self { module }
+    }
+
+    /// Decode ConfirmationArbiterComposing demand data into structured format
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded = arbiters_module.confirmation().confirmation().decode(demand_data)?;
+    /// ```
+    pub fn decode(
+        &self,
+        demand_data: DemandData,
+    ) -> eyre::Result<DecodedConfirmationArbiterComposingDemandData> {
+        self.module
+            .decode_confirmation_arbiter_composing_demands(demand_data)
+    }
+}
+
 impl ArbitersModule {
     pub fn decode_confirmation_arbiter_composing_demands(
         &self,

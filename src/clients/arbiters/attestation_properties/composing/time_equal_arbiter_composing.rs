@@ -19,6 +19,31 @@ pub struct DecodedTimeEqualArbiterComposingDemandData {
     pub time: u64,
 }
 
+/// TimeEqualArbiter-specific API for convenient access to decode functionality
+pub struct TimeEqualArbiter<'a> {
+    module: &'a ArbitersModule,
+}
+
+impl<'a> TimeEqualArbiter<'a> {
+    pub fn new(module: &'a ArbitersModule) -> Self {
+        Self { module }
+    }
+
+    /// Decode TimeEqualArbiter demand data into structured format
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded = arbiters_module.attestation_properties().time_equal().decode(demand_data)?;
+    /// ```
+    pub fn decode(
+        &self,
+        demand_data: DemandData,
+    ) -> eyre::Result<DecodedTimeEqualArbiterComposingDemandData> {
+        self.module
+            .decode_time_equal_arbiter_composing_demands(demand_data)
+    }
+}
+
 impl ArbitersModule {
     pub fn decode_time_equal_arbiter_composing_demands(
         &self,

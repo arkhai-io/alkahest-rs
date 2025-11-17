@@ -17,6 +17,27 @@ pub struct DecodedAnyArbiterDemandData {
     pub demands: Vec<DecodedDemand>,
 }
 
+/// AnyArbiter-specific API for convenient access to decode functionality
+pub struct AnyArbiter<'a> {
+    module: &'a ArbitersModule,
+}
+
+impl<'a> AnyArbiter<'a> {
+    pub fn new(module: &'a ArbitersModule) -> Self {
+        Self { module }
+    }
+
+    /// Decode AnyArbiter demand data into structured format
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded = arbiters_module.logical().any().decode(demand_data)?;
+    /// ```
+    pub fn decode(&self, demand_data: DemandData) -> eyre::Result<DecodedAnyArbiterDemandData> {
+        self.module.decode_any_arbiter_demands(demand_data)
+    }
+}
+
 impl ArbitersModule {
     pub fn decode_any_arbiter_demands(
         &self,

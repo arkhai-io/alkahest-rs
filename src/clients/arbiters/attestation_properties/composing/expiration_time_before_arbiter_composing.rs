@@ -19,6 +19,31 @@ pub struct DecodedExpirationTimeBeforeArbiterComposingDemandData {
     pub expiration_time: u64,
 }
 
+/// ExpirationTimeBeforeArbiter-specific API for convenient access to decode functionality
+pub struct ExpirationTimeBeforeArbiter<'a> {
+    module: &'a ArbitersModule,
+}
+
+impl<'a> ExpirationTimeBeforeArbiter<'a> {
+    pub fn new(module: &'a ArbitersModule) -> Self {
+        Self { module }
+    }
+
+    /// Decode ExpirationTimeBeforeArbiter demand data into structured format
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded = arbiters_module.attestation_properties().expiration_time_before().decode(demand_data)?;
+    /// ```
+    pub fn decode(
+        &self,
+        demand_data: DemandData,
+    ) -> eyre::Result<DecodedExpirationTimeBeforeArbiterComposingDemandData> {
+        self.module
+            .decode_expiration_time_before_arbiter_composing_demands(demand_data)
+    }
+}
+
 impl ArbitersModule {
     pub fn decode_expiration_time_before_arbiter_composing_demands(
         &self,

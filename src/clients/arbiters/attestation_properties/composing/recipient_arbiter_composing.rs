@@ -19,6 +19,31 @@ pub struct DecodedRecipientArbiterComposingDemandData {
     pub recipient: Address,
 }
 
+/// RecipientArbiter-specific API for convenient access to decode functionality
+pub struct RecipientArbiter<'a> {
+    module: &'a ArbitersModule,
+}
+
+impl<'a> RecipientArbiter<'a> {
+    pub fn new(module: &'a ArbitersModule) -> Self {
+        Self { module }
+    }
+
+    /// Decode RecipientArbiter demand data into structured format
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded = arbiters_module.attestation_properties().recipient().decode(demand_data)?;
+    /// ```
+    pub fn decode(
+        &self,
+        demand_data: DemandData,
+    ) -> eyre::Result<DecodedRecipientArbiterComposingDemandData> {
+        self.module
+            .decode_recipient_arbiter_composing_demands(demand_data)
+    }
+}
+
 impl ArbitersModule {
     pub fn decode_recipient_arbiter_composing_demands(
         &self,

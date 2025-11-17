@@ -21,12 +21,6 @@ pub mod specific_attestation_arbiter;
 pub mod trusted_oracle_arbiter;
 pub mod trusted_party_arbiter;
 
-// Re-export the core arbiters
-pub use intrinsics_arbiter2::*;
-pub use specific_attestation_arbiter::*;
-pub use trusted_oracle_arbiter::*;
-pub use trusted_party_arbiter::*;
-
 // Re-export confirmation APIs
 pub use confirmation::*;
 
@@ -35,22 +29,6 @@ pub use attestation_properties::*;
 
 // Re-export logical APIs
 pub use logical::*;
-
-// Import decoded attestation property arbiter types
-use attestation_properties::composing::{
-    attester_arbiter_composing::DecodedAttesterArbiterComposingDemandData,
-    expiration_time_after_arbiter_composing::DecodedExpirationTimeAfterArbiterComposingDemandData,
-    expiration_time_before_arbiter_composing::DecodedExpirationTimeBeforeArbiterComposingDemandData,
-    expiration_time_equal_arbiter_composing::DecodedExpirationTimeEqualArbiterComposingDemandData,
-    recipient_arbiter_composing::DecodedRecipientArbiterComposingDemandData,
-    ref_uid_arbiter_composing::DecodedRefUidArbiterComposingDemandData,
-    revocable_arbiter_composing::DecodedRevocableArbiterComposingDemandData,
-    schema_arbiter_composing::DecodedSchemaArbiterComposingDemandData,
-    time_after_arbiter_composing::DecodedTimeAfterArbiterComposingDemandData,
-    time_before_arbiter_composing::DecodedTimeBeforeArbiterComposingDemandData,
-    time_equal_arbiter_composing::DecodedTimeEqualArbiterComposingDemandData,
-    uid_arbiter_composing::DecodedUidArbiterComposingDemandData,
-};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ArbitersAddresses {
@@ -535,5 +513,43 @@ impl ArbitersModule {
         };
 
         Ok(decoded)
+    }
+
+    /// Access logical arbiters API for structured decode functionality
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded_all = arbiters_module.logical().all().decode(all_demand_data)?;
+    /// let decoded_any = arbiters_module.logical().any().decode(any_demand_data)?;
+    /// let decoded_not = arbiters_module.logical().not().decode(not_demand_data)?;
+    /// ```
+    pub fn logical(&self) -> logical::Logical<'_> {
+        logical::Logical::new(self)
+    }
+
+    /// Access confirmation arbiters API for structured decode functionality
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded_confirmation = arbiters_module.confirmation().confirmation().decode(confirmation_demand_data)?;
+    /// let decoded_revocable = arbiters_module.confirmation().revocable().decode(revocable_demand_data)?;
+    /// let decoded_unrevocable = arbiters_module.confirmation().unrevocable().decode(unrevocable_demand_data)?;
+    /// ```
+    pub fn confirmation(&self) -> confirmation::Confirmation<'_> {
+        confirmation::Confirmation::new(self)
+    }
+
+    /// Access attestation properties arbiters API for structured decode functionality
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded_attester = arbiters_module.attestation_properties().attester().decode(attester_demand_data)?;
+    /// let decoded_recipient = arbiters_module.attestation_properties().recipient().decode(recipient_demand_data)?;
+    /// let decoded_schema = arbiters_module.attestation_properties().schema().decode(schema_demand_data)?;
+    /// ```
+    pub fn attestation_properties(
+        &self,
+    ) -> attestation_properties::composing::AttestationProperties<'_> {
+        attestation_properties::composing::AttestationProperties::new(self)
     }
 }

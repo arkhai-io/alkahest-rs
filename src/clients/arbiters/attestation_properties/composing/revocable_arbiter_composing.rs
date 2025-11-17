@@ -19,6 +19,31 @@ pub struct DecodedRevocableArbiterComposingDemandData {
     pub revocable: bool,
 }
 
+/// RevocableArbiter-specific API for convenient access to decode functionality
+pub struct RevocableArbiter<'a> {
+    module: &'a ArbitersModule,
+}
+
+impl<'a> RevocableArbiter<'a> {
+    pub fn new(module: &'a ArbitersModule) -> Self {
+        Self { module }
+    }
+
+    /// Decode RevocableArbiter demand data into structured format
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded = arbiters_module.attestation_properties().revocable().decode(demand_data)?;
+    /// ```
+    pub fn decode(
+        &self,
+        demand_data: DemandData,
+    ) -> eyre::Result<DecodedRevocableArbiterComposingDemandData> {
+        self.module
+            .decode_revocable_arbiter_composing_demands(demand_data)
+    }
+}
+
 impl ArbitersModule {
     pub fn decode_revocable_arbiter_composing_demands(
         &self,

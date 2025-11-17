@@ -3,8 +3,7 @@ use crate::{
     clients::arbiters::ArbitersModule, contracts::logical::AllArbiter::DemandData,
     impl_demand_data_conversions,
 };
-use alloy::primitives::{Address, Bytes};
-use alloy::sol_types::SolValue;
+use alloy::primitives::Address;
 impl_demand_data_conversions!(DemandData);
 
 /// Decoded version of AllArbiter::DemandData with actual demand structures instead of raw bytes
@@ -14,6 +13,27 @@ pub struct DecodedAllArbiterDemandData {
     pub arbiters: Vec<Address>,
     /// Decoded demands instead of raw bytes
     pub demands: Vec<DecodedDemand>,
+}
+
+/// AllArbiter-specific API for convenient access to decode functionality
+pub struct AllArbiter<'a> {
+    module: &'a ArbitersModule,
+}
+
+impl<'a> AllArbiter<'a> {
+    pub fn new(module: &'a ArbitersModule) -> Self {
+        Self { module }
+    }
+
+    /// Decode AllArbiter demand data into structured format
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded = arbiters_module.logical().all().decode(demand_data)?;
+    /// ```
+    pub fn decode(&self, demand_data: DemandData) -> eyre::Result<DecodedAllArbiterDemandData> {
+        self.module.decode_all_arbiter_demands(demand_data)
+    }
 }
 
 impl ArbitersModule {

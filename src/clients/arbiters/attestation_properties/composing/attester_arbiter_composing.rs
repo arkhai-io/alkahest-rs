@@ -19,6 +19,31 @@ pub struct DecodedAttesterArbiterComposingDemandData {
     pub attester: Address,
 }
 
+/// AttesterArbiter-specific API for convenient access to decode functionality
+pub struct AttesterArbiter<'a> {
+    module: &'a ArbitersModule,
+}
+
+impl<'a> AttesterArbiter<'a> {
+    pub fn new(module: &'a ArbitersModule) -> Self {
+        Self { module }
+    }
+
+    /// Decode AttesterArbiter demand data into structured format
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded = arbiters_module.attestation_properties().attester().decode(demand_data)?;
+    /// ```
+    pub fn decode(
+        &self,
+        demand_data: DemandData,
+    ) -> eyre::Result<DecodedAttesterArbiterComposingDemandData> {
+        self.module
+            .decode_attester_arbiter_composing_demands(demand_data)
+    }
+}
+
 impl ArbitersModule {
     pub fn decode_attester_arbiter_composing_demands(
         &self,

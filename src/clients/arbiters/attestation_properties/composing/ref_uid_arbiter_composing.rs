@@ -19,6 +19,31 @@ pub struct DecodedRefUidArbiterComposingDemandData {
     pub ref_uid: FixedBytes<32>,
 }
 
+/// RefUidArbiter-specific API for convenient access to decode functionality
+pub struct RefUidArbiter<'a> {
+    module: &'a ArbitersModule,
+}
+
+impl<'a> RefUidArbiter<'a> {
+    pub fn new(module: &'a ArbitersModule) -> Self {
+        Self { module }
+    }
+
+    /// Decode RefUidArbiter demand data into structured format
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let decoded = arbiters_module.attestation_properties().ref_uid().decode(demand_data)?;
+    /// ```
+    pub fn decode(
+        &self,
+        demand_data: DemandData,
+    ) -> eyre::Result<DecodedRefUidArbiterComposingDemandData> {
+        self.module
+            .decode_ref_uid_arbiter_composing_demands(demand_data)
+    }
+}
+
 impl ArbitersModule {
     pub fn decode_ref_uid_arbiter_composing_demands(
         &self,
