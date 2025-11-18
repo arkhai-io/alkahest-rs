@@ -25,9 +25,15 @@ pub const BASE_SEPOLIA_ADDRESSES: DefaultExtensionConfig = DefaultExtensionConfi
         not_arbiter: address!("0x6f9BFDF8556e6619D525ae9c13849090c0Cf886f"),
         attester_arbiter_composing: address!("0x89bfB2d970D90b5ec52C4dF0b0A0596dd3E2b688"),
         attester_arbiter_non_composing: address!("0xA9ca3210114793c67a7A3eAC45A71c8a5E46694e"),
-        expiration_time_after_arbiter_composing: address!("0xb5d9193565128e5D087AC0F9A24C1C7aB89809F0"),
-        expiration_time_before_arbiter_composing: address!("0xD4604c67fae7e37C994047132413F73f65EA66D6"),
-        expiration_time_equal_arbiter_composing: address!("0xac12C07f8358e380C43BA32D3d10caFCb79441ce"),
+        expiration_time_after_arbiter_composing: address!(
+            "0xb5d9193565128e5D087AC0F9A24C1C7aB89809F0"
+        ),
+        expiration_time_before_arbiter_composing: address!(
+            "0xD4604c67fae7e37C994047132413F73f65EA66D6"
+        ),
+        expiration_time_equal_arbiter_composing: address!(
+            "0xac12C07f8358e380C43BA32D3d10caFCb79441ce"
+        ),
         recipient_arbiter_composing: address!("0x774F9D7c02AfB52507e5FB3ce8713bcBb9F613Dd"),
         ref_uid_arbiter_composing: address!("0xfC85602bB4d5ca70049B8E5d3c7ba3823D1797d9"),
         revocable_arbiter_composing: address!("0xE558A87bcB5117bA14388C9bdd19f0Ee44C09dcf"),
@@ -42,9 +48,15 @@ pub const BASE_SEPOLIA_ADDRESSES: DefaultExtensionConfig = DefaultExtensionConfi
         erc1155_payment_fulfillment_arbiter: Address::ZERO,
         token_bundle_payment_fulfillment_arbiter: Address::ZERO,
         // Non-composing arbiters
-        expiration_time_after_arbiter_non_composing: address!("0x913cc8f9a02334e7b1334476C936Bc2748a3Dd3e"),
-        expiration_time_before_arbiter_non_composing: address!("0x150fffcE007E0940f6E2B35BBeED9a04295815B0"),
-        expiration_time_equal_arbiter_non_composing: address!("0x83c3f93e8Ddb5427450F1a013Ac33b35AD2485cf"),
+        expiration_time_after_arbiter_non_composing: address!(
+            "0x913cc8f9a02334e7b1334476C936Bc2748a3Dd3e"
+        ),
+        expiration_time_before_arbiter_non_composing: address!(
+            "0x150fffcE007E0940f6E2B35BBeED9a04295815B0"
+        ),
+        expiration_time_equal_arbiter_non_composing: address!(
+            "0x83c3f93e8Ddb5427450F1a013Ac33b35AD2485cf"
+        ),
         recipient_arbiter_non_composing: address!("0x2F2D602899dfE1F3a0CcE013F0aC271fa88A7117"),
         ref_uid_arbiter_non_composing: address!("0xfc31f485819dE33D3d6a9837Be266Fb4aF5b4EC6"),
         revocable_arbiter_non_composing: address!("0x7c2e5d89282ecF39Fd978Fe92C93db82098f70e1"),
@@ -57,8 +69,11 @@ pub const BASE_SEPOLIA_ADDRESSES: DefaultExtensionConfig = DefaultExtensionConfi
         confirmation_arbiter: address!("0x10BC6135736A94AbB538C83ab03affd8e4aEe49D"),
         confirmation_arbiter_composing: address!("0xDB68575Ca35D926dB9045d367C6878F27d79eA5B"),
         revocable_confirmation_arbiter: address!("0xB74eBd0C5acdfDfD9222D4B9985aF79d537aaED7"),
-        revocable_confirmation_arbiter_composing: address!("0xCa06fF3Cbd798F4A5777BBDf3B3A0bFc7d48e7cf"),
+        revocable_confirmation_arbiter_composing: address!(
+            "0xCa06fF3Cbd798F4A5777BBDf3B3A0bFc7d48e7cf"
+        ),
         unrevocable_confirmation_arbiter: address!("0x063B177e2765658183C28caD8BC35458cb0Be8e1"),
+        unrevocable_confirmation_arbiter_composing: Address::ZERO,
     },
     string_obligation_addresses: StringObligationAddresses {
         eas: address!("0x4200000000000000000000000000000000000021"),
