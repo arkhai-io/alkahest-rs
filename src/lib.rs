@@ -18,7 +18,7 @@ use types::{SharedPublicProvider, SharedWalletProvider};
 
 use crate::clients::{
     arbiters::ArbitersAddresses, attestation::AttestationAddresses, erc20::Erc20Addresses,
-    erc721::Erc721Addresses, erc1155::Erc1155Addresses,
+    erc721::Erc721Addresses, erc1155::Erc1155Addresses, native_token::NativeTokenAddresses,
     string_obligation::StringObligationAddresses, token_bundle::TokenBundleAddresses,
 };
 
@@ -41,6 +41,7 @@ pub use clients::attestation::AttestationContract;
 pub use clients::erc20::Erc20Contract;
 pub use clients::erc721::Erc721Contract;
 pub use clients::erc1155::Erc1155Contract;
+pub use clients::native_token::NativeTokenContract;
 pub use clients::string_obligation::StringObligationContract;
 pub use clients::token_bundle::TokenBundleContract;
 pub use extensions::ContractModule;
@@ -84,6 +85,8 @@ pub struct DefaultExtensionConfig {
     pub erc721_addresses: Erc721Addresses,
     /// Addresses for ERC1155-related contracts
     pub erc1155_addresses: Erc1155Addresses,
+    /// Addresses for native token contracts
+    pub native_token_addresses: NativeTokenAddresses,
     /// Addresses for token bundle contracts that handle multiple token types
     pub token_bundle_addresses: TokenBundleAddresses,
     /// Addresses for attestation-related contracts

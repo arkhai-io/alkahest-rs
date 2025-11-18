@@ -76,6 +76,11 @@ pub struct TokenBundleData {
     pub erc1155s: Vec<Erc1155Data>,
 }
 
+#[derive(Debug, Clone)]
+pub struct NativeTokenData {
+    pub value: U256,
+}
+
 pub enum ApprovalPurpose {
     Escrow,
     Payment,

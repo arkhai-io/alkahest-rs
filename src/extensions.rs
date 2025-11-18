@@ -5,15 +5,17 @@ use std::any::Any;
 // Re-export modules from clients
 pub use crate::clients::{
     arbiters::ArbitersModule, attestation::AttestationModule, erc20::Erc20Module,
-    erc721::Erc721Module, erc1155::Erc1155Module, oracle::OracleModule,
-    string_obligation::StringObligationModule, token_bundle::TokenBundleModule,
+    erc721::Erc721Module, erc1155::Erc1155Module, native_token::NativeTokenModule,
+    oracle::OracleModule, string_obligation::StringObligationModule,
+    token_bundle::TokenBundleModule,
 };
 
 // Re-export address types for convenience
 pub use crate::clients::{
     arbiters::ArbitersAddresses, attestation::AttestationAddresses, erc20::Erc20Addresses,
-    erc721::Erc721Addresses, erc1155::Erc1155Addresses, oracle::OracleAddresses,
-    string_obligation::StringObligationAddresses, token_bundle::TokenBundleAddresses,
+    erc721::Erc721Addresses, erc1155::Erc1155Addresses, native_token::NativeTokenAddresses,
+    oracle::OracleAddresses, string_obligation::StringObligationAddresses,
+    token_bundle::TokenBundleAddresses,
 };
 
 use crate::{AlkahestClient, DefaultExtensionConfig};
@@ -132,6 +134,7 @@ pub struct BaseExtensions {
     pub erc20: Erc20Module,
     pub erc721: Erc721Module,
     pub erc1155: Erc1155Module,
+    pub native_token: NativeTokenModule,
     pub token_bundle: TokenBundleModule,
     pub attestation: AttestationModule,
     pub string_obligation: StringObligationModule,
@@ -151,6 +154,7 @@ impl AlkahestExtension for BaseExtensions {
         let erc20_config = config.as_ref().map(|c| c.erc20_addresses.clone());
         let erc721_config = config.as_ref().map(|c| c.erc721_addresses.clone());
         let erc1155_config = config.as_ref().map(|c| c.erc1155_addresses.clone());
+        let native_token_config = config.as_ref().map(|c| c.native_token_addresses.clone());
         let token_bundle_config = config.as_ref().map(|c| c.token_bundle_addresses.clone());
         let attestation_config = config.as_ref().map(|c| c.attestation_addresses.clone());
         let string_obligation_config = config
@@ -168,6 +172,9 @@ impl AlkahestExtension for BaseExtensions {
             Erc721Module::init(private_key.clone(), providers.clone(), erc721_config).await?;
         let erc1155 =
             Erc1155Module::init(private_key.clone(), providers.clone(), erc1155_config).await?;
+        let native_token =
+            NativeTokenModule::init(private_key.clone(), providers.clone(), native_token_config)
+                .await?;
         let token_bundle =
             TokenBundleModule::init(private_key.clone(), providers.clone(), token_bundle_config)
                 .await?;
@@ -189,6 +196,7 @@ impl AlkahestExtension for BaseExtensions {
             erc20,
             erc721,
             erc1155,
+            native_token,
             token_bundle,
             attestation,
             string_obligation,
@@ -238,6 +246,10 @@ pub trait HasErc1155 {
     fn erc1155(&self) -> &Erc1155Module;
 }
 
+pub trait HasNativeToken {
+    fn native_token(&self) -> &NativeTokenModule;
+}
+
 pub trait HasTokenBundle {
     fn token_bundle(&self) -> &TokenBundleModule;
 }
@@ -274,6 +286,12 @@ impl HasErc721 for BaseExtensions {
 impl HasErc1155 for BaseExtensions {
     fn erc1155(&self) -> &Erc1155Module {
         &self.erc1155
+    }
+}
+
+impl HasNativeToken for BaseExtensions {
+    fn native_token(&self) -> &NativeTokenModule {
+        &self.native_token
     }
 }
 

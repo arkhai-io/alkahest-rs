@@ -354,9 +354,7 @@ impl TokenBundleModule {
     /// * `Result<Vec<TransactionReceipt>>` - A vector of transaction receipts for all approval transactions
     ///
     /// # Example
-    /// ```rust
-    /// let approvals = client.approve(&token_bundle, ApprovalPurpose::Escrow).await?;
-    /// ```
+    /// * let approvals = client.approve(&token_bundle, ApprovalPurpose::Escrow).await?;
     pub async fn approve(
         &self,
         bundle: &TokenBundleData,

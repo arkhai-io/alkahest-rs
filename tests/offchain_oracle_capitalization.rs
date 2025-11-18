@@ -7,20 +7,14 @@ use std::{
 
 use alkahest_rs::{
     AlkahestClient, DefaultAlkahestClient,
-    clients::{
-        arbiters::{ArbitersModule, TrustedOracleArbiter},
-        oracle::ArbitrateOptions,
-    },
-    contracts::StringObligation,
+    clients::oracle::ArbitrateOptions,
+    contracts::{self, StringObligation},
     extensions::{HasErc20, HasOracle, HasStringObligation},
     fixtures::MockERC20Permit,
     types::{ArbiterData, Erc20Data},
     utils::{TestContext, setup_test_environment},
 };
-use alloy::{
-    primitives::Bytes,
-    signers::local::PrivateKeySigner,
-};
+use alloy::{primitives::Bytes, signers::local::PrivateKeySigner};
 use eyre::{Result, WrapErr, eyre};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -70,14 +64,14 @@ async fn run_synchronous_oracle_capitalization_example(test: &TestContext) -> ey
         ],
     };
 
-    let encoded_demand =
-        ArbitersModule::encode_trusted_oracle_arbiter_demand(&TrustedOracleArbiter::DemandData {
-            oracle: charlie_client.address,
-            data: Bytes::from(
-                serde_json::to_vec(&demand_payload)
-                    .wrap_err("failed to encode oracle demand payload")?,
-            ),
-        });
+    let encoded_demand = contracts::TrustedOracleArbiter::DemandData {
+        oracle: charlie_client.address,
+        data: Bytes::from(
+            serde_json::to_vec(&demand_payload)
+                .wrap_err("failed to encode oracle demand payload")?,
+        ),
+    }
+    .into();
 
     let arbiter_item = ArbiterData {
         arbiter: test.addresses.arbiters_addresses.trusted_oracle_arbiter,
@@ -133,14 +127,17 @@ async fn run_synchronous_oracle_capitalization_example(test: &TestContext) -> ey
 
                     // Get the escrow attestation and extract the demand
                     let Ok((_, demand)) = charlie_client_for_closure
-                        .get_escrow_and_demand::<TrustedOracleArbiter::DemandData>(&attestation)
+                        .get_escrow_and_demand::<contracts::TrustedOracleArbiter::DemandData>(
+                            &attestation,
+                        )
                         .await
                     else {
                         return Some(false);
                     };
 
                     // Parse the demand payload
-                    let Ok(payload) = serde_json::from_slice::<ShellOracleDemand>(demand.data.as_ref())
+                    let Ok(payload) =
+                        serde_json::from_slice::<ShellOracleDemand>(demand.data.as_ref())
                     else {
                         return Some(false);
                     };

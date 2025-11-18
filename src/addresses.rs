@@ -4,7 +4,7 @@ use crate::{
     DefaultExtensionConfig,
     clients::{
         arbiters::ArbitersAddresses, attestation::AttestationAddresses, erc20::Erc20Addresses,
-        erc721::Erc721Addresses, erc1155::Erc1155Addresses,
+        erc721::Erc721Addresses, erc1155::Erc1155Addresses, native_token::NativeTokenAddresses,
         string_obligation::StringObligationAddresses, token_bundle::TokenBundleAddresses,
     },
 };
@@ -82,6 +82,12 @@ pub const BASE_SEPOLIA_ADDRESSES: DefaultExtensionConfig = DefaultExtensionConfi
         escrow_obligation: address!("0xe29A8516dd347919cC1939c2113EFD611Ba47a9E"),
         payment_obligation: address!("0xE083f6B4b1b5F89e6E2E1E043a1947fa14839A67"),
     },
+    native_token_addresses: NativeTokenAddresses {
+        eas: address!("0x4200000000000000000000000000000000000021"),
+        barter_utils: Address::ZERO, // TODO: Add actual address when deployed
+        escrow_obligation: Address::ZERO, // TODO: Add actual address when deployed
+        payment_obligation: Address::ZERO, // TODO: Add actual address when deployed
+    },
     token_bundle_addresses: TokenBundleAddresses {
         eas: address!("0x4200000000000000000000000000000000000021"),
         barter_utils: address!("0x1300a5AD4C33F482f106B72fAA72a0e73D7e94eA"),
@@ -147,6 +153,7 @@ pub const FILECOIN_CALIBRATION_ADDRESSES: DefaultExtensionConfig = DefaultExtens
         revocable_confirmation_arbiter: Address::ZERO,
         revocable_confirmation_arbiter_composing: Address::ZERO,
         unrevocable_confirmation_arbiter: Address::ZERO,
+        unrevocable_confirmation_arbiter_composing: Address::ZERO,
     },
     string_obligation_addresses: StringObligationAddresses {
         eas: address!("0x3c79a0225380fb6f3cb990ffc4e3d5af4546b524"),
@@ -169,6 +176,12 @@ pub const FILECOIN_CALIBRATION_ADDRESSES: DefaultExtensionConfig = DefaultExtens
         barter_utils: address!("0x66b7398b2bb322bb4a480ae370142c02c52b886a"),
         escrow_obligation: address!("0x553e4de0916074201a9d32123efcc8f734ee5675"),
         payment_obligation: address!("0x903caa028b1848ab8fdd15c4ccd20c4e7be2b1c0"),
+    },
+    native_token_addresses: NativeTokenAddresses {
+        eas: address!("0x3c79a0225380fb6f3cb990ffc4e3d5af4546b524"),
+        barter_utils: Address::ZERO, // TODO: Add actual address when deployed
+        escrow_obligation: Address::ZERO, // TODO: Add actual address when deployed
+        payment_obligation: Address::ZERO, // TODO: Add actual address when deployed
     },
     token_bundle_addresses: TokenBundleAddresses {
         eas: address!("0x3c79a0225380fb6f3cb990ffc4e3d5af4546b524"),

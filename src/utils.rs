@@ -10,71 +10,29 @@ use crate::{
     AlkahestClient, DefaultExtensionConfig,
     clients::{
         arbiters::ArbitersAddresses, attestation::AttestationAddresses, erc20::Erc20Addresses,
-        erc721::Erc721Addresses, erc1155::Erc1155Addresses,
+        erc721::Erc721Addresses, erc1155::Erc1155Addresses, native_token::NativeTokenAddresses,
         string_obligation::StringObligationAddresses, token_bundle::TokenBundleAddresses,
     },
     contracts::{
-        AllArbiter, AnyArbiter, AttestationBarterUtils, AttestationEscrowObligation,
-        AttestationEscrowObligation2, ERC20EscrowObligation, ERC20PaymentObligation,
-        ERC721EscrowObligation, ERC721PaymentObligation, ERC1155EscrowObligation,
-        ERC1155PaymentObligation, IntrinsicsArbiter, IntrinsicsArbiter2, NotArbiter,
-        RecipientArbiter, SpecificAttestationArbiter, StringObligation, TokenBundleBarterUtils,
-        TrivialArbiter, TrustedOracleArbiter, TrustedPartyArbiter,
-        attester_arbiters::{
-            composing::AttesterArbiterComposing, non_composing::AttesterArbiterNonComposing,
-        },
+        AttestationBarterUtils, AttestationEscrowObligation, AttestationEscrowObligation2,
+        ERC20EscrowObligation, ERC20PaymentObligation, ERC721EscrowObligation,
+        ERC721PaymentObligation, ERC1155EscrowObligation, ERC1155PaymentObligation,
+        IntrinsicsArbiter, IntrinsicsArbiter2, RecipientArbiter, SpecificAttestationArbiter,
+        StringObligation, TokenBundleBarterUtils, TrivialArbiter, TrustedOracleArbiter,
+        TrustedPartyArbiter,
+        attestation_properties::{composing::*, non_composing::*},
         confirmation_arbiters::{
-            ConfirmationArbiter, composing::ConfirmationArbiterComposing,
-            revocable::RevocableConfirmationArbiter,
-            revocable_composing::RevocableConfirmationArbiterComposing,
-            unrevocable::UnrevocableConfirmationArbiter,
+            ConfirmationArbiter, ConfirmationArbiterComposing, RevocableConfirmationArbiter,
+            RevocableConfirmationArbiterComposing, UnrevocableConfirmationArbiter,
+            UnrevocableConfirmationArbiterComposing,
         },
         erc20_barter_cross_token::ERC20BarterCrossToken,
         erc721_barter_cross_token::ERC721BarterCrossToken,
         erc1155_barter_cross_token::ERC1155BarterCrossToken,
-        expiration_time_arbiters::{
-            after::{
-                composing::ExpirationTimeAfterArbiterComposing,
-                non_composing::ExpirationTimeAfterArbiterNonComposing,
-            },
-            before::{
-                composing::ExpirationTimeBeforeArbiterComposing,
-                non_composing::ExpirationTimeBeforeArbiterNonComposing,
-            },
-            equal::{
-                composing::ExpirationTimeEqualArbiterComposing,
-                non_composing::ExpirationTimeEqualArbiterNonComposing,
-            },
-        },
-        extended_recipient_arbiters::{
-            composing::RecipientArbiterComposing, non_composing::RecipientArbiterNonComposing,
-        },
-        extended_uid_arbiters::{
-            composing::UidArbiterComposing, non_composing::UidArbiterNonComposing,
-        },
+        logical::*,
         payment_fulfillment_arbiters::{
             ERC20PaymentFulfillmentArbiter, ERC721PaymentFulfillmentArbiter,
             ERC1155PaymentFulfillmentArbiter, TokenBundlePaymentFulfillmentArbiter,
-        },
-        ref_uid_arbiters::{
-            composing::RefUidArbiterComposing, non_composing::RefUidArbiterNonComposing,
-        },
-        revocable_arbiters::{
-            composing::RevocableArbiterComposing, non_composing::RevocableArbiterNonComposing,
-        },
-        schema_arbiters::{
-            composing::SchemaArbiterComposing, non_composing::SchemaArbiterNonComposing,
-        },
-        time_arbiters::{
-            after::{
-                composing::TimeAfterArbiterComposing, non_composing::TimeAfterArbiterNonComposing,
-            },
-            before::{
-                composing::TimeBeforeArbiterComposing, non_composing::TimeBeforeArbiterNonComposing,
-            },
-            equal::{
-                composing::TimeEqualArbiterComposing, non_composing::TimeEqualArbiterNonComposing,
-            },
         },
         token_bundle::{TokenBundleEscrowObligation, TokenBundlePaymentObligation},
     },
@@ -191,6 +149,10 @@ pub async fn setup_test_environment() -> eyre::Result<TestContext> {
     let unrevocable_confirmation_arbiter =
         UnrevocableConfirmationArbiter::deploy(&god_provider, eas.address().clone()).await?;
 
+    let unrevocable_confirmation_arbiter_composing =
+        UnrevocableConfirmationArbiterComposing::deploy(&god_provider, eas.address().clone())
+            .await?;
+
     macro_rules! deploy_obligation {
         ($name:ident) => {
             $name::deploy(
@@ -213,6 +175,35 @@ pub async fn setup_test_environment() -> eyre::Result<TestContext> {
     let erc1155_escrow_obligation = deploy_obligation!(ERC1155EscrowObligation);
     let erc1155_payment_obligation = deploy_obligation!(ERC1155PaymentObligation);
     let string_obligation = deploy_obligation!(StringObligation);
+
+    // Deploy native token contracts
+    let native_token_escrow_obligation = crate::contracts::NativeTokenEscrowObligation::deploy(
+        &god_provider,
+        eas.address().clone(),
+        schema_registry.address().clone(),
+    )
+    .await?;
+    let native_token_payment_obligation = crate::contracts::NativeTokenPaymentObligation::deploy(
+        &god_provider,
+        eas.address().clone(),
+        schema_registry.address().clone(),
+    )
+    .await?;
+    let native_token_barter_utils = crate::contracts::NativeTokenBarterUtils::deploy(
+        &god_provider,
+        eas.address().clone(),
+        erc20_escrow_obligation.address().clone(),
+        erc20_payment_obligation.address().clone(),
+        erc721_escrow_obligation.address().clone(),
+        erc721_payment_obligation.address().clone(),
+        erc1155_escrow_obligation.address().clone(),
+        erc1155_payment_obligation.address().clone(),
+        bundle_escrow_obligation.address().clone(),
+        bundle_payment_obligation.address().clone(),
+        native_token_escrow_obligation.address().clone(),
+        native_token_payment_obligation.address().clone(),
+    )
+    .await?;
 
     // Deploy payment fulfillment arbiters (after obligations are available)
     let erc20_payment_fulfillment_arbiter = ERC20PaymentFulfillmentArbiter::deploy(
@@ -352,6 +343,9 @@ pub async fn setup_test_environment() -> eyre::Result<TestContext> {
                 .address()
                 .clone(),
             unrevocable_confirmation_arbiter: unrevocable_confirmation_arbiter.address().clone(),
+            unrevocable_confirmation_arbiter_composing: unrevocable_confirmation_arbiter_composing
+                .address()
+                .clone(),
         },
         string_obligation_addresses: StringObligationAddresses {
             eas: eas.address().clone(),
@@ -374,6 +368,12 @@ pub async fn setup_test_environment() -> eyre::Result<TestContext> {
             barter_utils: erc1155_barter_utils.address().clone(),
             escrow_obligation: erc1155_escrow_obligation.address().clone(),
             payment_obligation: erc1155_payment_obligation.address().clone(),
+        },
+        native_token_addresses: NativeTokenAddresses {
+            eas: eas.address().clone(),
+            barter_utils: native_token_barter_utils.address().clone(),
+            escrow_obligation: native_token_escrow_obligation.address().clone(),
+            payment_obligation: native_token_payment_obligation.address().clone(),
         },
         token_bundle_addresses: TokenBundleAddresses {
             eas: eas.address().clone(),

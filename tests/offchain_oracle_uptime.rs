@@ -9,11 +9,8 @@ use std::{
 
 use alkahest_rs::{
     AlkahestClient, DefaultAlkahestClient,
-    clients::{
-        arbiters::{ArbitersModule, TrustedOracleArbiter},
-        oracle::ArbitrateOptions,
-    },
-    contracts::StringObligation,
+    clients::oracle::ArbitrateOptions,
+    contracts::{self, StringObligation},
     extensions::{HasArbiters, HasErc20, HasOracle, HasStringObligation},
     fixtures::MockERC20Permit,
     types::{ArbiterData, Erc20Data},
@@ -77,7 +74,9 @@ fn schedule_pings(
         };
 
         // Extract obligation data
-        let Ok(statement) = ctx.client.extract_obligation_data::<StringObligation::ObligationData>(&attestation)
+        let Ok(statement) = ctx
+            .client
+            .extract_obligation_data::<StringObligation::ObligationData>(&attestation)
         else {
             return None;
         };
@@ -88,13 +87,15 @@ fn schedule_pings(
         };
 
         // Get escrow and extract demand
-        let Ok((_, demand)) = ctx.client.get_escrow_and_demand::<TrustedOracleArbiter::DemandData>(&attestation).await
+        let Ok((_, demand)) = ctx
+            .client
+            .get_escrow_and_demand::<contracts::TrustedOracleArbiter::DemandData>(&attestation)
+            .await
         else {
             return None;
         };
 
-        let Ok(parsed_demand) = serde_json::from_slice::<UptimeDemand>(demand.data.as_ref())
-        else {
+        let Ok(parsed_demand) = serde_json::from_slice::<UptimeDemand>(demand.data.as_ref()) else {
             return None;
         };
 
@@ -134,11 +135,11 @@ async fn setup_escrow_with_uptime_demand(
         .get_receipt()
         .await?;
 
-    let encoded_demand =
-        ArbitersModule::encode_trusted_oracle_arbiter_demand(&TrustedOracleArbiter::DemandData {
-            oracle,
-            data: Bytes::from(serde_json::to_vec(demand)?),
-        });
+    let encoded_demand = contracts::TrustedOracleArbiter::DemandData {
+        oracle,
+        data: Bytes::from(serde_json::to_vec(demand)?),
+    }
+    .into();
 
     let arbiter_item = ArbiterData {
         arbiter: test.addresses.arbiters_addresses.trusted_oracle_arbiter,

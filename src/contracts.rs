@@ -185,6 +185,31 @@ pub mod token_bundle {
     );
 }
 
+// Native Token Contracts
+sol!(
+    #[allow(missing_docs)]
+    #[sol(rpc)]
+    #[derive(Debug)]
+    NativeTokenBarterUtils,
+    "src/contracts/NativeTokenBarterUtils.json"
+);
+
+sol!(
+    #[allow(missing_docs)]
+    #[sol(rpc)]
+    #[derive(Debug)]
+    NativeTokenEscrowObligation,
+    "src/contracts/NativeTokenEscrowObligation.json"
+);
+
+sol!(
+    #[allow(missing_docs)]
+    #[sol(rpc)]
+    #[derive(Debug)]
+    NativeTokenPaymentObligation,
+    "src/contracts/NativeTokenPaymentObligation.json"
+);
+
 sol!(
     #[allow(missing_docs)]
     #[sol(rpc)]
@@ -274,41 +299,6 @@ sol!(
     "src/contracts/arbiters/IntrinsicsArbiter2.json"
 );
 
-sol!(
-    #[allow(missing_docs)]
-    #[sol(rpc)]
-    #[derive(Debug)]
-    AnyArbiter,
-    "src/contracts/arbiters/AnyArbiter.json"
-);
-
-pub mod attester_arbiters {
-
-    pub mod composing {
-        use alloy::sol;
-
-        sol!(
-            #[allow(missing_docs)]
-            #[sol(rpc)]
-            #[derive(Debug)]
-            AttesterArbiterComposing,
-            "src/contracts/arbiters/attestation-properties/composing/AttesterArbiter.json"
-        );
-    }
-
-    pub mod non_composing {
-        use alloy::sol;
-
-        sol!(
-            #[allow(missing_docs)]
-            #[sol(rpc)]
-            #[derive(Debug)]
-            AttesterArbiterNonComposing,
-            "src/contracts/arbiters/attestation-properties/non-composing/AttesterArbiter.json"
-        );
-    }
-}
-
 pub mod confirmation_arbiters {
     use alloy::sol;
 
@@ -320,53 +310,44 @@ pub mod confirmation_arbiters {
         "src/contracts/arbiters/ConfirmationArbiter.json"
     );
 
-    pub mod composing {
-        use alloy::sol;
+    sol!(
+        #[allow(missing_docs)]
+        #[sol(rpc)]
+        #[derive(Debug)]
+        ConfirmationArbiterComposing,
+        "src/contracts/arbiters/ConfirmationArbiterComposing.json"
+    );
 
-        sol!(
-            #[allow(missing_docs)]
-            #[sol(rpc)]
-            #[derive(Debug)]
-            ConfirmationArbiterComposing,
-            "src/contracts/arbiters/ConfirmationArbiterComposing.json"
-        );
-    }
+    sol!(
+        #[allow(missing_docs)]
+        #[sol(rpc)]
+        #[derive(Debug)]
+        RevocableConfirmationArbiter,
+        "src/contracts/arbiters/RevocableConfirmationArbiter.json"
+    );
 
-    pub mod revocable {
-        use alloy::sol;
+    sol!(
+        #[allow(missing_docs)]
+        #[sol(rpc)]
+        #[derive(Debug)]
+        RevocableConfirmationArbiterComposing,
+        "src/contracts/arbiters/RevocableConfirmationArbiterComposing.json"
+    );
 
-        sol!(
-            #[allow(missing_docs)]
-            #[sol(rpc)]
-            #[derive(Debug)]
-            RevocableConfirmationArbiter,
-            "src/contracts/arbiters/RevocableConfirmationArbiter.json"
-        );
-    }
-
-    pub mod revocable_composing {
-        use alloy::sol;
-
-        sol!(
-            #[allow(missing_docs)]
-            #[sol(rpc)]
-            #[derive(Debug)]
-            RevocableConfirmationArbiterComposing,
-            "src/contracts/arbiters/RevocableConfirmationArbiterComposing.json"
-        );
-    }
-
-    pub mod unrevocable {
-        use alloy::sol;
-
-        sol!(
-            #[allow(missing_docs)]
-            #[sol(rpc)]
-            #[derive(Debug)]
-            UnrevocableConfirmationArbiter,
-            "src/contracts/arbiters/UnrevocableConfirmationArbiter.json"
-        );
-    }
+    sol!(
+        #[allow(missing_docs)]
+        #[sol(rpc)]
+        #[derive(Debug)]
+        UnrevocableConfirmationArbiter,
+        "src/contracts/arbiters/UnrevocableConfirmationArbiter.json"
+    );
+    sol!(
+        #[allow(missing_docs)]
+        #[sol(rpc)]
+        #[derive(Debug)]
+        UnrevocableConfirmationArbiterComposing,
+        "src/contracts/arbiters/UnrevocableConfirmationArbiterComposing.json"
+    );
 }
 
 pub mod payment_fulfillment_arbiters {
@@ -404,95 +385,41 @@ pub mod payment_fulfillment_arbiters {
         "src/contracts/TokenBundlePaymentFulfillmentArbiter.json"
     );
 }
-
-pub mod expiration_time_arbiters {
-
-    pub mod after {
-
-        pub mod composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                ExpirationTimeAfterArbiterComposing,
-                "src/contracts/arbiters/attestation-properties/composing/ExpirationTimeAfterArbiter.json"
-            );
-        }
-
-        pub mod non_composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                ExpirationTimeAfterArbiterNonComposing,
-                "src/contracts/arbiters/attestation-properties/non-composing/ExpirationTimeAfterArbiter.json"
-            );
-        }
-    }
-
-    pub mod before {
-
-        pub mod composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                ExpirationTimeBeforeArbiterComposing,
-                "src/contracts/arbiters/attestation-properties/composing/ExpirationTimeBeforeArbiter.json"
-            );
-        }
-
-        pub mod non_composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                ExpirationTimeBeforeArbiterNonComposing,
-                "src/contracts/arbiters/attestation-properties/non-composing/ExpirationTimeBeforeArbiter.json"
-            );
-        }
-    }
-
-    pub mod equal {
-
-        pub mod composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                ExpirationTimeEqualArbiterComposing,
-                "src/contracts/arbiters/attestation-properties/composing/ExpirationTimeEqualArbiter.json"
-            );
-        }
-
-        pub mod non_composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                ExpirationTimeEqualArbiterNonComposing,
-                "src/contracts/arbiters/attestation-properties/non-composing/ExpirationTimeEqualArbiter.json"
-            );
-        }
-    }
-}
-
-pub mod extended_recipient_arbiters {
-
+pub mod attestation_properties {
     pub mod composing {
         use alloy::sol;
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            AttesterArbiterComposing,
+            "src/contracts/arbiters/attestation-properties/composing/AttesterArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            ExpirationTimeAfterArbiterComposing,
+            "src/contracts/arbiters/attestation-properties/composing/ExpirationTimeAfterArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            ExpirationTimeBeforeArbiterComposing,
+            "src/contracts/arbiters/attestation-properties/composing/ExpirationTimeBeforeArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            ExpirationTimeEqualArbiterComposing,
+            "src/contracts/arbiters/attestation-properties/composing/ExpirationTimeEqualArbiter.json"
+        );
 
         sol!(
             #[allow(missing_docs)]
@@ -501,25 +428,6 @@ pub mod extended_recipient_arbiters {
             RecipientArbiterComposing,
             "src/contracts/arbiters/attestation-properties/composing/RecipientArbiter.json"
         );
-    }
-
-    pub mod non_composing {
-        use alloy::sol;
-
-        sol!(
-            #[allow(missing_docs)]
-            #[sol(rpc)]
-            #[derive(Debug)]
-            RecipientArbiterNonComposing,
-            "src/contracts/arbiters/attestation-properties/non-composing/RecipientArbiter.json"
-        );
-    }
-}
-
-pub mod ref_uid_arbiters {
-
-    pub mod composing {
-        use alloy::sol;
 
         sol!(
             #[allow(missing_docs)]
@@ -528,25 +436,6 @@ pub mod ref_uid_arbiters {
             RefUidArbiterComposing,
             "src/contracts/arbiters/attestation-properties/composing/RefUidArbiter.json"
         );
-    }
-
-    pub mod non_composing {
-        use alloy::sol;
-
-        sol!(
-            #[allow(missing_docs)]
-            #[sol(rpc)]
-            #[derive(Debug)]
-            RefUidArbiterNonComposing,
-            "src/contracts/arbiters/attestation-properties/non-composing/RefUidArbiter.json"
-        );
-    }
-}
-
-pub mod revocable_arbiters {
-
-    pub mod composing {
-        use alloy::sol;
 
         sol!(
             #[allow(missing_docs)]
@@ -555,25 +444,6 @@ pub mod revocable_arbiters {
             RevocableArbiterComposing,
             "src/contracts/arbiters/attestation-properties/composing/RevocableArbiter.json"
         );
-    }
-
-    pub mod non_composing {
-        use alloy::sol;
-
-        sol!(
-            #[allow(missing_docs)]
-            #[sol(rpc)]
-            #[derive(Debug)]
-            RevocableArbiterNonComposing,
-            "src/contracts/arbiters/attestation-properties/non-composing/RevocableArbiter.json"
-        );
-    }
-}
-
-pub mod schema_arbiters {
-
-    pub mod composing {
-        use alloy::sol;
 
         sol!(
             #[allow(missing_docs)]
@@ -582,109 +452,30 @@ pub mod schema_arbiters {
             SchemaArbiterComposing,
             "src/contracts/arbiters/attestation-properties/composing/SchemaArbiter.json"
         );
-    }
-
-    pub mod non_composing {
-        use alloy::sol;
 
         sol!(
             #[allow(missing_docs)]
             #[sol(rpc)]
             #[derive(Debug)]
-            SchemaArbiterNonComposing,
-            "src/contracts/arbiters/attestation-properties/non-composing/SchemaArbiter.json"
+            TimeAfterArbiterComposing,
+            "src/contracts/arbiters/attestation-properties/composing/TimeAfterArbiter.json"
         );
-    }
-}
 
-pub mod time_arbiters {
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            TimeBeforeArbiterComposing,
+            "src/contracts/arbiters/attestation-properties/composing/TimeBeforeArbiter.json"
+        );
 
-    pub mod after {
-
-        pub mod composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                TimeAfterArbiterComposing,
-                "src/contracts/arbiters/attestation-properties/composing/TimeAfterArbiter.json"
-            );
-        }
-
-        pub mod non_composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                TimeAfterArbiterNonComposing,
-                "src/contracts/arbiters/attestation-properties/non-composing/TimeAfterArbiter.json"
-            );
-        }
-    }
-
-    pub mod before {
-
-        pub mod composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                TimeBeforeArbiterComposing,
-                "src/contracts/arbiters/attestation-properties/composing/TimeBeforeArbiter.json"
-            );
-        }
-
-        pub mod non_composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                TimeBeforeArbiterNonComposing,
-                "src/contracts/arbiters/attestation-properties/non-composing/TimeBeforeArbiter.json"
-            );
-        }
-    }
-
-    pub mod equal {
-
-        pub mod composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                TimeEqualArbiterComposing,
-                "src/contracts/arbiters/attestation-properties/composing/TimeEqualArbiter.json"
-            );
-        }
-
-        pub mod non_composing {
-            use alloy::sol;
-
-            sol!(
-                #[allow(missing_docs)]
-                #[sol(rpc)]
-                #[derive(Debug)]
-                TimeEqualArbiterNonComposing,
-                "src/contracts/arbiters/attestation-properties/non-composing/TimeEqualArbiter.json"
-            );
-        }
-    }
-}
-
-pub mod extended_uid_arbiters {
-
-    pub mod composing {
-        use alloy::sol;
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            TimeEqualArbiterComposing,
+            "src/contracts/arbiters/attestation-properties/composing/TimeEqualArbiter.json"
+        );
 
         sol!(
             #[allow(missing_docs)]
@@ -702,28 +493,126 @@ pub mod extended_uid_arbiters {
             #[allow(missing_docs)]
             #[sol(rpc)]
             #[derive(Debug)]
+            AttesterArbiterNonComposing,
+            "src/contracts/arbiters/attestation-properties/non-composing/AttesterArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            ExpirationTimeAfterArbiterNonComposing,
+            "src/contracts/arbiters/attestation-properties/non-composing/ExpirationTimeAfterArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            ExpirationTimeBeforeArbiterNonComposing,
+            "src/contracts/arbiters/attestation-properties/non-composing/ExpirationTimeBeforeArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            ExpirationTimeEqualArbiterNonComposing,
+            "src/contracts/arbiters/attestation-properties/non-composing/ExpirationTimeEqualArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            RecipientArbiterNonComposing,
+            "src/contracts/arbiters/attestation-properties/non-composing/RecipientArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            RefUidArbiterNonComposing,
+            "src/contracts/arbiters/attestation-properties/non-composing/RefUidArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            RevocableArbiterNonComposing,
+            "src/contracts/arbiters/attestation-properties/non-composing/RevocableArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            SchemaArbiterNonComposing,
+            "src/contracts/arbiters/attestation-properties/non-composing/SchemaArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            TimeAfterArbiterNonComposing,
+            "src/contracts/arbiters/attestation-properties/non-composing/TimeAfterArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            TimeBeforeArbiterNonComposing,
+            "src/contracts/arbiters/attestation-properties/non-composing/TimeBeforeArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
+            TimeEqualArbiterNonComposing,
+            "src/contracts/arbiters/attestation-properties/non-composing/TimeEqualArbiter.json"
+        );
+
+        sol!(
+            #[allow(missing_docs)]
+            #[sol(rpc)]
+            #[derive(Debug)]
             UidArbiterNonComposing,
             "src/contracts/arbiters/attestation-properties/non-composing/UidArbiter.json"
         );
     }
 }
 
-// Simple arbiters without naming conflicts
-sol!(
-    #[allow(missing_docs)]
-    #[sol(rpc)]
-    #[derive(Debug)]
-    NotArbiter,
-    "src/contracts/arbiters/NotArbiter.json"
-);
+pub mod logical {
+    use alloy::sol;
+    sol!(
+        #[allow(missing_docs)]
+        #[sol(rpc)]
+        #[derive(Debug)]
+        AnyArbiter,
+        "src/contracts/arbiters/AnyArbiter.json"
+    );
+    // Simple arbiters without naming conflicts
+    sol!(
+        #[allow(missing_docs)]
+        #[sol(rpc)]
+        #[derive(Debug)]
+        NotArbiter,
+        "src/contracts/arbiters/NotArbiter.json"
+    );
 
-sol!(
-    #[allow(missing_docs)]
-    #[sol(rpc)]
-    #[derive(Debug)]
-    AllArbiter,
-    "src/contracts/arbiters/AllArbiter.json"
-);
+    sol!(
+        #[allow(missing_docs)]
+        #[sol(rpc)]
+        #[derive(Debug)]
+        AllArbiter,
+        "src/contracts/arbiters/AllArbiter.json"
+    );
+}
 
 // Additional contracts
 sol!(
