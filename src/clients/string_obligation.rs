@@ -76,6 +76,18 @@ impl StringObligationModule {
         })
     }
 
+    /// Gets the current nonce for the signer's address.
+    ///
+    /// # Returns
+    /// * `Result<u64>` - The current transaction count (nonce) for the signer
+    async fn get_nonce(&self) -> eyre::Result<u64> {
+        let nonce = self
+            .wallet_provider
+            .get_transaction_count(self._signer.address())
+            .await?;
+        Ok(nonce)
+    }
+
     pub async fn get_obligation(
         &self,
         uid: FixedBytes<32>,
@@ -126,8 +138,7 @@ impl StringObligationModule {
 
         let obligation_data = contracts::StringObligation::ObligationData { item };
 
-        let address = self._signer.address();
-        let nonce = self.wallet_provider.get_transaction_count(address).await?;
+        let nonce = self.get_nonce().await?;
 
         let receipt = contract
             .doObligation(
@@ -154,11 +165,15 @@ impl StringObligationModule {
         let obligation_data = contracts::StringObligation::ObligationData {
             item: serde_json::to_string(&obligation_data)?,
         };
+
+        let nonce = self.get_nonce().await?;
+
         let receipt = contract
             .doObligation(
                 obligation_data,
                 ref_uid.unwrap_or(FixedBytes::<32>::default()),
             )
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()

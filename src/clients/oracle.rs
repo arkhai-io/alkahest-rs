@@ -160,6 +160,18 @@ impl OracleModule {
         })
     }
 
+    /// Gets the current nonce for the signer's address.
+    ///
+    /// # Returns
+    /// * `Result<u64>` - The current transaction count (nonce) for the signer
+    async fn get_nonce(&self) -> eyre::Result<u64> {
+        let nonce = self
+            .wallet_provider
+            .get_transaction_count(self.signer_address)
+            .await?;
+        Ok(nonce)
+    }
+
     pub async fn wait_for_arbitration(
         &self,
         obligation: FixedBytes<32>,
@@ -252,13 +264,12 @@ impl OracleModule {
         obligation_uid: FixedBytes<32>,
         oracle: Address,
     ) -> eyre::Result<TransactionReceipt> {
-        let trusted_oracle_arbiter =
-            TrustedOracleArbiter::new(self.addresses.trusted_oracle_arbiter, &*self.wallet_provider);
+        let trusted_oracle_arbiter = TrustedOracleArbiter::new(
+            self.addresses.trusted_oracle_arbiter,
+            &*self.wallet_provider,
+        );
 
-        let nonce = self
-            .wallet_provider
-            .get_transaction_count(self.signer_address)
-            .await?;
+        let nonce = self.get_nonce().await?;
 
         let tx = trusted_oracle_arbiter
             .requestArbitration(obligation_uid, oracle)
@@ -588,8 +599,10 @@ impl OracleModule {
         timeout: Option<Duration>,
     ) {
         let eas = IEAS::new(self.addresses.eas, &*self.wallet_provider);
-        let arbiter =
-            TrustedOracleArbiter::new(self.addresses.trusted_oracle_arbiter, &*self.wallet_provider);
+        let arbiter = TrustedOracleArbiter::new(
+            self.addresses.trusted_oracle_arbiter,
+            &*self.wallet_provider,
+        );
 
         loop {
             let next_result = if let Some(timeout_duration) = timeout {

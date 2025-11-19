@@ -1,4 +1,5 @@
 use alloy::primitives::{Address, Bytes, FixedBytes};
+use alloy::providers::Provider;
 use alloy::rpc::types::TransactionReceipt;
 use alloy::signers::local::PrivateKeySigner;
 use alloy::sol_types::SolValue as _;
@@ -91,6 +92,18 @@ impl Erc1155Module {
             addresses: addresses.unwrap_or_default(),
         })
     }
+    
+    /// Gets the current nonce for the signer's address.
+    ///
+    /// # Returns
+    /// * `Result<u64>` - The current transaction count (nonce) for the signer
+    async fn get_nonce(&self) -> eyre::Result<u64> {
+        let nonce = self
+            .wallet_provider
+            .get_transaction_count(self.signer.address())
+            .await?;
+        Ok(nonce)
+    }
 
     /// Decodes ERC1155EscrowObligation.ObligationData from bytes.
     ///
@@ -176,8 +189,11 @@ impl Erc1155Module {
             ApprovalPurpose::Payment => self.addresses.payment_obligation,
         };
 
+        let nonce = self.get_nonce().await?;
+        
         let receipt = erc1155_contract
             .setApprovalForAll(to, true)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -206,8 +222,11 @@ impl Erc1155Module {
             ApprovalPurpose::Payment => self.addresses.payment_obligation,
         };
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = erc1155_contract
             .setApprovalForAll(to, false)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -234,8 +253,11 @@ impl Erc1155Module {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = escrow_contract
             .collectEscrow(buy_attestation, fulfillment)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -260,8 +282,11 @@ impl Erc1155Module {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = escrow_contract
             .reclaimExpired(buy_attestation)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -290,6 +315,8 @@ impl Erc1155Module {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = escrow_obligation_contract
             .doObligation(
                 contracts::ERC1155EscrowObligation::ObligationData {
@@ -301,6 +328,7 @@ impl Erc1155Module {
                 },
                 expiration,
             )
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -327,6 +355,8 @@ impl Erc1155Module {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = payment_obligation_contract
             .doObligation(contracts::ERC1155PaymentObligation::ObligationData {
                 token: price.address,
@@ -334,6 +364,7 @@ impl Erc1155Module {
                 amount: price.value,
                 payee,
             })
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -360,6 +391,8 @@ impl Erc1155Module {
         let barter_utils_contract =
             contracts::ERC1155BarterUtils::new(self.addresses.barter_utils, &*self.wallet_provider);
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = barter_utils_contract
             .buyErc1155ForErc1155(
                 bid.address,
@@ -370,6 +403,7 @@ impl Erc1155Module {
                 ask.value,
                 expiration,
             )
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -392,8 +426,11 @@ impl Erc1155Module {
         let barter_utils_contract =
             contracts::ERC1155BarterUtils::new(self.addresses.barter_utils, &*self.wallet_provider);
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = barter_utils_contract
             .payErc1155ForErc1155(buy_attestation)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -423,6 +460,8 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = barter_utils_contract
             .buyErc20WithErc1155(
                 bid.address,
@@ -432,6 +471,7 @@ impl Erc1155Module {
                 ask.value,
                 expiration,
             )
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -457,8 +497,11 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = barter_utils_contract
             .payErc1155ForErc20(buy_attestation)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -488,6 +531,8 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = barter_utils_contract
             .buyErc721WithErc1155(
                 bid.address,
@@ -497,6 +542,7 @@ impl Erc1155Module {
                 ask.id,
                 expiration,
             )
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -522,8 +568,11 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = barter_utils_contract
             .payErc1155ForErc721(buy_attestation)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -553,6 +602,8 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = barter_utils_contract
             .buyBundleWithErc1155(
                 bid.address,
@@ -561,6 +612,7 @@ impl Erc1155Module {
                 (ask, self.signer.address()).into(),
                 expiration,
             )
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -586,8 +638,11 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = barter_utils_contract
             .payErc1155ForBundle(buy_attestation)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -637,8 +692,8 @@ mod tests {
 
         // Create sample obligation data
         let token_address = test.mock_addresses.erc1155_a;
-        let id: U256 = 1.try_into()?;
-        let amount: U256 = 10.try_into()?;
+        let id: U256 = U256::from(1);
+        let amount: U256 = U256::from(10);
         let arbiter = test.addresses.erc1155_addresses.payment_obligation;
         let demand = Bytes::from(vec![1, 2, 3, 4]); // sample demand data
 
@@ -673,8 +728,8 @@ mod tests {
 
         // Create sample obligation data
         let token_address = test.mock_addresses.erc1155_a;
-        let id: U256 = 1.try_into()?;
-        let amount: U256 = 10.try_into()?;
+        let id: U256 = U256::from(1);
+        let amount: U256 = U256::from(10);
         let payee = test.alice.address();
 
         let payment_data = crate::contracts::ERC1155PaymentObligation::ObligationData {
@@ -707,7 +762,7 @@ mod tests {
         // mint ERC1155 tokens to alice
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -766,7 +821,7 @@ mod tests {
         // mint ERC1155 tokens to alice
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -807,7 +862,7 @@ mod tests {
         // mint ERC1155 tokens to alice
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -815,8 +870,8 @@ mod tests {
 
         let price = Erc1155Data {
             address: test.mock_addresses.erc1155_a,
-            id: 1.try_into()?,
-            value: 5.try_into()?,
+            id: U256::from(1),
+            value: U256::from(5),
         };
 
         // Create custom arbiter data
@@ -839,7 +894,7 @@ mod tests {
 
         // Verify escrow happened - check alice's balance decreased
         let alice_balance = mock_erc1155_a
-            .balanceOf(test.alice.address(), 1.try_into()?)
+            .balanceOf(test.alice.address(), U256::from(1))
             .call()
             .await?;
 
@@ -847,7 +902,7 @@ mod tests {
         let escrow_balance = mock_erc1155_a
             .balanceOf(
                 test.addresses.erc1155_addresses.escrow_obligation,
-                1.try_into()?,
+                U256::from(1),
             )
             .call()
             .await?;
@@ -855,10 +910,10 @@ mod tests {
         // token in escrow
         assert_eq!(
             alice_balance,
-            5.try_into()?,
+            U256::from(5),
             "Alice should have 5 tokens remaining"
         );
-        assert_eq!(escrow_balance, 5.try_into()?, "Escrow should have 5 tokens");
+        assert_eq!(escrow_balance, U256::from(5), "Escrow should have 5 tokens");
 
         // escrow obligation made
         let attested_event = DefaultAlkahestClient::get_attested_event(receipt)?;
@@ -875,7 +930,7 @@ mod tests {
         // mint ERC1155 tokens to alice
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -883,8 +938,8 @@ mod tests {
 
         let price = Erc1155Data {
             address: test.mock_addresses.erc1155_a,
-            id: 1.try_into()?,
-            value: 5.try_into()?,
+            id: U256::from(1),
+            value: U256::from(5),
         };
 
         // approve tokens for payment
@@ -895,7 +950,7 @@ mod tests {
 
         // Check initial balances
         let initial_bob_balance = mock_erc1155_a
-            .balanceOf(test.bob.address(), 1.try_into()?)
+            .balanceOf(test.bob.address(), U256::from(1))
             .call()
             .await?;
 
@@ -908,14 +963,14 @@ mod tests {
 
         // Verify payment happened
         let final_bob_balance = mock_erc1155_a
-            .balanceOf(test.bob.address(), 1.try_into()?)
+            .balanceOf(test.bob.address(), U256::from(1))
             .call()
             .await?;
 
         // tokens paid to bob
         assert_eq!(
             final_bob_balance - initial_bob_balance,
-            5.try_into()?,
+            U256::from(5),
             "Bob should have received 5 tokens"
         );
 
@@ -934,7 +989,7 @@ mod tests {
         // mint ERC1155 tokens to alice
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -943,13 +998,13 @@ mod tests {
         // begin test
         let bid = Erc1155Data {
             address: test.mock_addresses.erc1155_a,
-            id: 1.try_into()?,
-            value: 5.try_into()?,
+            id: U256::from(1),
+            value: U256::from(5),
         };
         let ask = Erc1155Data {
             address: test.mock_addresses.erc1155_b,
-            id: 2.try_into()?,
-            value: 3.try_into()?,
+            id: U256::from(2),
+            value: U256::from(3),
         };
 
         // alice approves token for escrow
@@ -969,14 +1024,14 @@ mod tests {
         let escrow_balance = mock_erc1155_a
             .balanceOf(
                 test.addresses.erc1155_addresses.escrow_obligation,
-                1.try_into()?,
+                U256::from(1),
             )
             .call()
             .await?;
 
         assert_eq!(
             escrow_balance,
-            5.try_into()?,
+            U256::from(5),
             "5 tokens should be in escrow"
         );
 
@@ -995,7 +1050,7 @@ mod tests {
         // mint ERC1155 tokens to alice and bob
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -1003,7 +1058,7 @@ mod tests {
 
         let mock_erc1155_b = MockERC1155::new(test.mock_addresses.erc1155_b, &test.god_provider);
         mock_erc1155_b
-            .mint(test.bob.address(), 2.try_into()?, 10.try_into()?)
+            .mint(test.bob.address(), U256::from(2), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -1012,13 +1067,13 @@ mod tests {
         // begin test
         let bid = Erc1155Data {
             address: test.mock_addresses.erc1155_a,
-            id: 1.try_into()?,
-            value: 5.try_into()?,
+            id: U256::from(1),
+            value: U256::from(5),
         };
         let ask = Erc1155Data {
             address: test.mock_addresses.erc1155_b,
-            id: 2.try_into()?,
-            value: 3.try_into()?,
+            id: U256::from(2),
+            value: U256::from(3),
         };
 
         // alice approves token for escrow and creates buy attestation
@@ -1043,11 +1098,11 @@ mod tests {
 
         // Check initial balances
         let initial_alice_balance_b = mock_erc1155_b
-            .balanceOf(test.alice.address(), 2.try_into()?)
+            .balanceOf(test.alice.address(), U256::from(2))
             .call()
             .await?;
         let initial_bob_balance_a = mock_erc1155_a
-            .balanceOf(test.bob.address(), 1.try_into()?)
+            .balanceOf(test.bob.address(), U256::from(1))
             .call()
             .await?;
 
@@ -1060,23 +1115,23 @@ mod tests {
 
         // verify token transfers
         let final_alice_balance_b = mock_erc1155_b
-            .balanceOf(test.alice.address(), 2.try_into()?)
+            .balanceOf(test.alice.address(), U256::from(2))
             .call()
             .await?;
         let final_bob_balance_a = mock_erc1155_a
-            .balanceOf(test.bob.address(), 1.try_into()?)
+            .balanceOf(test.bob.address(), U256::from(1))
             .call()
             .await?;
 
         // both sides received the tokens
         assert_eq!(
             final_alice_balance_b - initial_alice_balance_b,
-            3.try_into()?,
+            U256::from(3),
             "Alice should have received 3 tokens B"
         );
         assert_eq!(
             final_bob_balance_a - initial_bob_balance_a,
-            5.try_into()?,
+            U256::from(5),
             "Bob should have received 5 tokens A"
         );
 
@@ -1091,7 +1146,7 @@ mod tests {
         // mint ERC1155 tokens to alice
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -1100,13 +1155,13 @@ mod tests {
         // begin test
         let bid = Erc1155Data {
             address: test.mock_addresses.erc1155_a,
-            id: 1.try_into()?,
-            value: 5.try_into()?,
+            id: U256::from(1),
+            value: U256::from(5),
         };
         let ask = Erc1155Data {
             address: test.mock_addresses.erc1155_b,
-            id: 2.try_into()?,
-            value: 3.try_into()?,
+            id: U256::from(2),
+            value: U256::from(3),
         };
 
         // alice approves token for escrow
@@ -1117,7 +1172,7 @@ mod tests {
 
         // Check initial balance
         let initial_alice_balance = mock_erc1155_a
-            .balanceOf(test.alice.address(), 1.try_into()?)
+            .balanceOf(test.alice.address(), U256::from(1))
             .call()
             .await?;
 
@@ -1143,7 +1198,7 @@ mod tests {
 
         // verify tokens returned to alice
         let final_alice_balance = mock_erc1155_a
-            .balanceOf(test.alice.address(), 1.try_into()?)
+            .balanceOf(test.alice.address(), U256::from(1))
             .call()
             .await?;
 
@@ -1163,7 +1218,7 @@ mod tests {
         // mint ERC1155 tokens to alice
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -1172,12 +1227,12 @@ mod tests {
         // Create exchange information
         let bid = Erc1155Data {
             address: test.mock_addresses.erc1155_a,
-            id: 1.try_into()?,
-            value: 5.try_into()?,
+            id: U256::from(1),
+            value: U256::from(5),
         };
         let ask = Erc20Data {
             address: test.mock_addresses.erc20_a,
-            value: 100.try_into()?,
+            value: U256::from(100),
         };
 
         // alice approves token for escrow
@@ -1197,14 +1252,14 @@ mod tests {
         let escrow_balance = mock_erc1155_a
             .balanceOf(
                 test.addresses.erc1155_addresses.escrow_obligation,
-                1.try_into()?,
+                U256::from(1),
             )
             .call()
             .await?;
 
         assert_eq!(
             escrow_balance,
-            5.try_into()?,
+            U256::from(5),
             "5 tokens should be in escrow"
         );
 
@@ -1223,7 +1278,7 @@ mod tests {
         // mint ERC1155 tokens to alice
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -1232,12 +1287,12 @@ mod tests {
         // Create exchange information
         let bid = Erc1155Data {
             address: test.mock_addresses.erc1155_a,
-            id: 1.try_into()?,
-            value: 5.try_into()?,
+            id: U256::from(1),
+            value: U256::from(5),
         };
         let ask = Erc721Data {
             address: test.mock_addresses.erc721_a,
-            id: 1.try_into()?,
+            id: U256::from(1),
         };
 
         // alice approves token for escrow
@@ -1257,14 +1312,14 @@ mod tests {
         let escrow_balance = mock_erc1155_a
             .balanceOf(
                 test.addresses.erc1155_addresses.escrow_obligation,
-                1.try_into()?,
+                U256::from(1),
             )
             .call()
             .await?;
 
         assert_eq!(
             escrow_balance,
-            5.try_into()?,
+            U256::from(5),
             "5 tokens should be in escrow"
         );
 
@@ -1283,7 +1338,7 @@ mod tests {
         // mint ERC1155 tokens to alice
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -1292,24 +1347,24 @@ mod tests {
         // Create exchange information
         let bid = Erc1155Data {
             address: test.mock_addresses.erc1155_a,
-            id: 1.try_into()?,
-            value: 5.try_into()?,
+            id: U256::from(1),
+            value: U256::from(5),
         };
 
         // Create bundle data
         let bundle = TokenBundleData {
             erc20s: vec![Erc20Data {
                 address: test.mock_addresses.erc20_b,
-                value: 20.try_into()?,
+                value: U256::from(20),
             }],
             erc721s: vec![Erc721Data {
                 address: test.mock_addresses.erc721_b,
-                id: 2.try_into()?,
+                id: U256::from(2),
             }],
             erc1155s: vec![Erc1155Data {
                 address: test.mock_addresses.erc1155_b,
-                id: 3.try_into()?,
-                value: 4.try_into()?,
+                id: U256::from(3),
+                value: U256::from(4),
             }],
         };
 
@@ -1330,14 +1385,14 @@ mod tests {
         let escrow_balance = mock_erc1155_a
             .balanceOf(
                 test.addresses.erc1155_addresses.escrow_obligation,
-                1.try_into()?,
+                U256::from(1),
             )
             .call()
             .await?;
 
         assert_eq!(
             escrow_balance,
-            5.try_into()?,
+            U256::from(5),
             "5 tokens should be in escrow"
         );
 
@@ -1356,7 +1411,7 @@ mod tests {
         // mint ERC1155 tokens to alice
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -1365,7 +1420,7 @@ mod tests {
         // give bob some ERC20 tokens for escrow
         let mock_erc20_a = MockERC20Permit::new(test.mock_addresses.erc20_a, &test.god_provider);
         mock_erc20_a
-            .transfer(test.bob.address(), 100.try_into()?)
+            .transfer(test.bob.address(), U256::from(100))
             .send()
             .await?
             .get_receipt()
@@ -1375,13 +1430,13 @@ mod tests {
         let bid = Erc20Data {
             // bob's bid
             address: test.mock_addresses.erc20_a,
-            value: 100.try_into()?,
+            value: U256::from(100),
         };
         let ask = Erc1155Data {
             // bob asks for alice's ERC1155
             address: test.mock_addresses.erc1155_a,
-            id: 1.try_into()?,
-            value: 5.try_into()?,
+            id: U256::from(1),
+            value: U256::from(5),
         };
 
         // bob approves tokens for escrow and creates buy attestation
@@ -1409,7 +1464,7 @@ mod tests {
             mock_erc20_a.balanceOf(test.alice.address()).call().await?;
 
         let initial_bob_erc1155_balance = mock_erc1155_a
-            .balanceOf(test.bob.address(), 1.try_into()?)
+            .balanceOf(test.bob.address(), U256::from(1))
             .call()
             .await?;
 
@@ -1424,19 +1479,19 @@ mod tests {
         let final_alice_erc20_balance = mock_erc20_a.balanceOf(test.alice.address()).call().await?;
 
         let final_bob_erc1155_balance = mock_erc1155_a
-            .balanceOf(test.bob.address(), 1.try_into()?)
+            .balanceOf(test.bob.address(), U256::from(1))
             .call()
             .await?;
 
         // both sides received the tokens
         assert_eq!(
             final_alice_erc20_balance - initial_alice_erc20_balance,
-            100.try_into()?,
+            U256::from(100),
             "Alice should have received ERC20 tokens"
         );
         assert_eq!(
             final_bob_erc1155_balance - initial_bob_erc1155_balance,
-            5.try_into()?,
+            U256::from(5),
             "Bob should have received the ERC1155 tokens"
         );
 
@@ -1451,7 +1506,7 @@ mod tests {
         // mint ERC1155 tokens to alice
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -1470,13 +1525,13 @@ mod tests {
         let bid = Erc721Data {
             // bob's bid
             address: test.mock_addresses.erc721_a,
-            id: 1.try_into()?,
+            id: U256::from(1),
         };
         let ask = Erc1155Data {
             // bob asks for alice's ERC1155
             address: test.mock_addresses.erc1155_a,
-            id: 1.try_into()?,
-            value: 5.try_into()?,
+            id: U256::from(1),
+            value: U256::from(5),
         };
 
         // bob approves tokens for escrow and creates buy attestation
@@ -1501,7 +1556,7 @@ mod tests {
 
         // Check initial ERC1155 balance for bob
         let initial_bob_erc1155_balance = mock_erc1155_a
-            .balanceOf(test.bob.address(), 1.try_into()?)
+            .balanceOf(test.bob.address(), U256::from(1))
             .call()
             .await?;
 
@@ -1513,9 +1568,9 @@ mod tests {
             .await?;
 
         // verify token transfers
-        let alice_now_owns_erc721 = mock_erc721_a.ownerOf(1.try_into()?).call().await?;
+        let alice_now_owns_erc721 = mock_erc721_a.ownerOf(U256::from(1)).call().await?;
         let final_bob_erc1155_balance = mock_erc1155_a
-            .balanceOf(test.bob.address(), 1.try_into()?)
+            .balanceOf(test.bob.address(), U256::from(1))
             .call()
             .await?;
 
@@ -1527,7 +1582,7 @@ mod tests {
         );
         assert_eq!(
             final_bob_erc1155_balance - initial_bob_erc1155_balance,
-            5.try_into()?,
+            U256::from(5),
             "Bob should have received the ERC1155 tokens"
         );
 
@@ -1542,7 +1597,7 @@ mod tests {
         // mint ERC1155 tokens to alice (she will fulfill with these)
         let mock_erc1155_a = MockERC1155::new(test.mock_addresses.erc1155_a, &test.god_provider);
         mock_erc1155_a
-            .mint(test.alice.address(), 1.try_into()?, 10.try_into()?)
+            .mint(test.alice.address(), U256::from(1), U256::from(10))
             .send()
             .await?
             .get_receipt()
@@ -1552,7 +1607,7 @@ mod tests {
         // ERC20
         let mock_erc20_b = MockERC20Permit::new(test.mock_addresses.erc20_b, &test.god_provider);
         mock_erc20_b
-            .transfer(test.bob.address(), 20.try_into()?)
+            .transfer(test.bob.address(), U256::from(20))
             .send()
             .await?
             .get_receipt()
@@ -1570,7 +1625,7 @@ mod tests {
         // ERC1155
         let mock_erc1155_b = MockERC1155::new(test.mock_addresses.erc1155_b, &test.god_provider);
         mock_erc1155_b
-            .mint(test.bob.address(), 3.try_into()?, 4.try_into()?)
+            .mint(test.bob.address(), U256::from(3), U256::from(4))
             .send()
             .await?
             .get_receipt()
@@ -1581,11 +1636,11 @@ mod tests {
         let initial_alice_erc20_balance =
             mock_erc20_b.balanceOf(test.alice.address()).call().await?;
         let initial_alice_erc1155b_balance = mock_erc1155_b
-            .balanceOf(test.alice.address(), 3.try_into()?)
+            .balanceOf(test.alice.address(), U256::from(3))
             .call()
             .await?;
         let initial_bob_erc1155a_balance = mock_erc1155_a
-            .balanceOf(test.bob.address(), 1.try_into()?)
+            .balanceOf(test.bob.address(), U256::from(1))
             .call()
             .await?;
 
@@ -1593,24 +1648,24 @@ mod tests {
         let bundle = TokenBundleData {
             erc20s: vec![Erc20Data {
                 address: test.mock_addresses.erc20_b,
-                value: 20.try_into()?,
+                value: U256::from(20),
             }],
             erc721s: vec![Erc721Data {
                 address: test.mock_addresses.erc721_b,
-                id: 1.try_into()?,
+                id: U256::from(1),
             }],
             erc1155s: vec![Erc1155Data {
                 address: test.mock_addresses.erc1155_b,
-                id: 3.try_into()?,
-                value: 4.try_into()?,
+                id: U256::from(3),
+                value: U256::from(4),
             }],
         };
 
         // Create the ERC1155 payment obligation data as the demand
         let payment_obligation_data = crate::contracts::ERC1155PaymentObligation::ObligationData {
             token: test.mock_addresses.erc1155_a,
-            tokenId: 1.try_into()?,
-            amount: 5.try_into()?,
+            tokenId: U256::from(1),
+            amount: U256::from(5),
             payee: test.bob.address(),
         };
 
@@ -1657,23 +1712,23 @@ mod tests {
         // Check alice received all tokens from the bundle
         let final_alice_erc20_balance = mock_erc20_b.balanceOf(test.alice.address()).call().await?;
 
-        let alice_erc721_owner = mock_erc721_b.ownerOf(1.try_into()?).call().await?;
+        let alice_erc721_owner = mock_erc721_b.ownerOf(U256::from(1)).call().await?;
 
         let final_alice_erc1155b_balance = mock_erc1155_b
-            .balanceOf(test.alice.address(), 3.try_into()?)
+            .balanceOf(test.alice.address(), U256::from(3))
             .call()
             .await?;
 
         // Check bob received the ERC1155 tokens
         let final_bob_erc1155a_balance = mock_erc1155_a
-            .balanceOf(test.bob.address(), 1.try_into()?)
+            .balanceOf(test.bob.address(), U256::from(1))
             .call()
             .await?;
 
         // Verify alice received the bundle
         assert_eq!(
             final_alice_erc20_balance - initial_alice_erc20_balance,
-            20.try_into()?,
+            U256::from(20),
             "Alice should have received ERC20 tokens"
         );
         assert_eq!(
@@ -1683,14 +1738,14 @@ mod tests {
         );
         assert_eq!(
             final_alice_erc1155b_balance - initial_alice_erc1155b_balance,
-            4.try_into()?,
+            U256::from(4),
             "Alice should have received ERC1155 tokens"
         );
 
         // Verify bob received the ERC1155
         assert_eq!(
             final_bob_erc1155a_balance - initial_bob_erc1155a_balance,
-            5.try_into()?,
+            U256::from(5),
             "Bob should have received the ERC1155 tokens"
         );
 

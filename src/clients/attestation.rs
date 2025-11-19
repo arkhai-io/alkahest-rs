@@ -1,5 +1,6 @@
 use alloy::primitives::Address;
 use alloy::primitives::{Bytes, FixedBytes};
+use alloy::providers::Provider;
 use alloy::rpc::types::TransactionReceipt;
 use alloy::signers::local::PrivateKeySigner;
 use alloy::sol_types::SolValue as _;
@@ -80,6 +81,18 @@ impl AttestationModule {
             wallet_provider,
             addresses: addresses.unwrap_or_default(),
         })
+    }
+
+    /// Gets the current nonce for the signer's address.
+    ///
+    /// # Returns
+    /// * `Result<u64>` - The current transaction count (nonce) for the signer
+    async fn get_nonce(&self) -> eyre::Result<u64> {
+        let nonce = self
+            .wallet_provider
+            .get_transaction_count(self._signer.address())
+            .await?;
+        Ok(nonce)
     }
 
     /// Decodes AttestationEscrowObligation.ObligationData from bytes.
@@ -174,8 +187,11 @@ impl AttestationModule {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+        
         let receipt = schema_registry_contract
             .register(schema, resolver, revocable)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -194,8 +210,11 @@ impl AttestationModule {
     ) -> eyre::Result<TransactionReceipt> {
         let eas_contract = contracts::IEAS::new(self.addresses.eas, &*self.wallet_provider);
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = eas_contract
             .attest(attestation)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -220,8 +239,11 @@ impl AttestationModule {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = escrow_contract
             .collectEscrow(buy_attestation, fulfillment)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -247,8 +269,11 @@ impl AttestationModule {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = escrow_contract
             .collectEscrow(buy_attestation, fulfillment)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -277,6 +302,8 @@ impl AttestationModule {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = attestation_escrow_obligation_contract
             .doObligation(
                 contracts::AttestationEscrowObligation::ObligationData {
@@ -286,6 +313,7 @@ impl AttestationModule {
                 },
                 expiration,
             )
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -315,6 +343,8 @@ impl AttestationModule {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = attestation_escrow_obligation_2_contract
             .doObligation(
                 contracts::AttestationEscrowObligation2::ObligationData {
@@ -324,6 +354,7 @@ impl AttestationModule {
                 },
                 expiration,
             )
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -350,6 +381,8 @@ impl AttestationModule {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = barter_utils_contract
             .attestAndCreateEscrow(
                 attestation.into(),
@@ -357,6 +390,7 @@ impl AttestationModule {
                 demand.demand,
                 expiration,
             )
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()

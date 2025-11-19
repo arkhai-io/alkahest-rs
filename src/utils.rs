@@ -2,7 +2,10 @@ use alloy::{
     network::{EthereumWallet, TxSigner},
     node_bindings::AnvilInstance,
     primitives::{Address, Signature},
-    providers::{ProviderBuilder, WsConnect},
+    providers::{
+        ProviderBuilder, WsConnect,
+        fillers::{BlobGasFiller, ChainIdFiller, GasFiller, NonceFiller, WalletFiller},
+    },
     signers::local::PrivateKeySigner,
 };
 
@@ -47,7 +50,10 @@ pub async fn get_wallet_provider<T: TxSigner<Signature> + Sync + Send + 'static>
     let wallet = EthereumWallet::from(private_key);
     let ws = WsConnect::new(rpc_url.to_string());
 
-    let provider = ProviderBuilder::new().wallet(wallet).connect_ws(ws).await?;
+    let provider = ProviderBuilder::new()
+        .wallet(wallet.clone())
+        .connect_ws(ws)
+        .await?;
 
     Ok(provider)
 }

@@ -1,4 +1,5 @@
 use alloy::primitives::{Address, Bytes, FixedBytes};
+use alloy::providers::Provider;
 use alloy::rpc::types::TransactionReceipt;
 use alloy::signers::local::PrivateKeySigner;
 use alloy::sol_types::SolValue as _;
@@ -90,6 +91,18 @@ impl TokenBundleModule {
 
             addresses: addresses.unwrap_or_default(),
         })
+    }
+
+    /// Gets the current nonce for the signer's address.
+    ///
+    /// # Returns
+    /// * `Result<u64>` - The current transaction count (nonce) for the signer
+    async fn get_nonce(&self) -> eyre::Result<u64> {
+        let nonce = self
+            .wallet_provider
+            .get_transaction_count(self.signer.address())
+            .await?;
+        Ok(nonce)
     }
 
     /// Decodes TokenBundleEscrowObligation.ObligationData from bytes.
@@ -184,8 +197,11 @@ impl TokenBundleModule {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = escrow_contract
             .collectEscrow(buy_attestation, fulfillment)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -210,8 +226,11 @@ impl TokenBundleModule {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = escrow_contract
             .reclaimExpired(buy_attestation)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -240,8 +259,11 @@ impl TokenBundleModule {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = escrow_obligation_contract
             .doObligation((price, item).into(), expiration)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -269,8 +291,11 @@ impl TokenBundleModule {
                 &*self.wallet_provider,
             );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = payment_obligation_contract
             .doObligation((price, payee).into())
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -299,6 +324,8 @@ impl TokenBundleModule {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let zero_arbiter = ArbiterData {
             arbiter: Address::ZERO,
             demand: Bytes::new(),
@@ -310,6 +337,7 @@ impl TokenBundleModule {
                 (ask, self.signer.address()).into(),
                 expiration,
             )
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -334,8 +362,11 @@ impl TokenBundleModule {
             &*self.wallet_provider,
         );
 
+        let nonce = self.get_nonce().await?;
+
         let receipt = barter_utils_contract
             .payBundleForBundle(buy_attestation)
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -372,9 +403,12 @@ impl TokenBundleModule {
         for token in &bundle.erc20s {
             let erc20_contract = IERC20::new(token.address, &*self.wallet_provider);
 
+            let nonce = self.get_nonce().await?;
+
             // Use map_err for more concise error handling
             let receipt = erc20_contract
                 .approve(target, token.value)
+                .nonce(nonce)
                 .send()
                 .await
                 .map_err(|e| eyre::eyre!("Failed to send ERC20 approval: {}", e))?
@@ -393,8 +427,10 @@ impl TokenBundleModule {
         for address in erc721_addresses {
             let erc721_contract = IERC721::new(address, &*self.wallet_provider);
 
+            let nonce = self.get_nonce().await?;
             let receipt = erc721_contract
                 .setApprovalForAll(target, true)
+                .nonce(nonce)
                 .send()
                 .await
                 .map_err(|e| eyre::eyre!("Failed to send ERC721 approval: {}", e))?
@@ -413,8 +449,10 @@ impl TokenBundleModule {
         for address in erc1155_addresses {
             let erc1155_contract = IERC1155::new(address, &*self.wallet_provider);
 
+            let nonce = self.get_nonce().await?;
             let receipt = erc1155_contract
                 .setApprovalForAll(target, true)
+                .nonce(nonce)
                 .send()
                 .await
                 .map_err(|e| eyre::eyre!("Failed to send ERC1155 approval: {}", e))?

@@ -6,8 +6,9 @@ mod tests {
         types::{ArbiterData, Erc20Data},
     };
     use alloy::{
+        network::EthereumWallet,
         primitives::{Bytes, U256},
-        providers::Provider,
+        providers::{Provider, ProviderBuilder, WsConnect},
     };
 
     use alkahest_rs::utils::setup_test_environment;
@@ -103,15 +104,20 @@ mod tests {
         let demand = Bytes::from(b"custom demand data");
         let item = ArbiterData { arbiter, demand };
 
-        // Create NEW module instances using fresh wallet providers
+        // Create NEW module instances using the SAME wallet provider as the client
         use alkahest_rs::clients::erc20::Erc20Module;
         use alkahest_rs::clients::string_obligation::StringObligationModule;
-        use alkahest_rs::utils::get_wallet_provider;
-        use std::sync::Arc;
 
-        let wallet_provider =
-            get_wallet_provider(test.alice.clone(), test.anvil.ws_endpoint_url()).await?;
-        let shared_wallet_provider = Arc::new(wallet_provider);
+        let wallet = EthereumWallet::from(test.alice.clone());
+        let ws = WsConnect::new(test.anvil.ws_endpoint_url());
+
+        let provider = ProviderBuilder::new()
+            .wallet(wallet.clone())
+            .connect_ws(ws)
+            .await?;
+
+        // Manually create a new wallet provider using the same signer and RPC URL
+        let shared_wallet_provider = std::sync::Arc::new(provider);
 
         let new_erc20_module = Erc20Module::new(
             test.alice.clone(),

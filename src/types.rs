@@ -4,8 +4,8 @@ use alloy::{
     providers::{
         Identity, RootProvider,
         fillers::{
-            BlobGasFiller, ChainIdFiller, FillProvider, GasFiller, JoinFill, NonceFiller,
-            WalletFiller,
+            BlobGasFiller, CachedNonceManager, ChainIdFiller, FillProvider, GasFiller, JoinFill,
+            NonceFiller, SimpleNonceManager, WalletFiller,
         },
     },
 };
@@ -18,7 +18,7 @@ use crate::contracts::IEAS::Attestation;
 pub type WalletProvider = FillProvider<
     JoinFill<
         JoinFill<
-            Identity,
+            alloy::providers::Identity,
             JoinFill<GasFiller, JoinFill<BlobGasFiller, JoinFill<NonceFiller, ChainIdFiller>>>,
         >,
         WalletFiller<EthereumWallet>,
@@ -28,7 +28,7 @@ pub type WalletProvider = FillProvider<
 
 pub type PublicProvider = FillProvider<
     JoinFill<
-        Identity,
+        alloy::providers::Identity,
         JoinFill<GasFiller, JoinFill<BlobGasFiller, JoinFill<NonceFiller, ChainIdFiller>>>,
     >,
     RootProvider,

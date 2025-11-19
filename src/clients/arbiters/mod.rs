@@ -8,6 +8,7 @@ use alloy::{
     primitives::{Address, FixedBytes, Log},
     providers::Provider as _,
     rpc::types::{Filter, TransactionReceipt},
+    signers::local::PrivateKeySigner,
     sol_types::SolEvent as _,
 };
 use futures_util::StreamExt as _;
@@ -86,6 +87,7 @@ pub struct ArbitersAddresses {
 
 #[derive(Clone)]
 pub struct ArbitersModule {
+    signer: PrivateKeySigner,
     public_provider: SharedPublicProvider,
     wallet_provider: SharedWalletProvider,
 
@@ -138,21 +140,40 @@ impl AlkahestExtension for ArbitersModule {
         providers: crate::types::ProviderContext,
         config: Option<Self::Config>,
     ) -> eyre::Result<Self> {
-        Self::new(providers.public.clone(), providers.wallet.clone(), config)
+        Self::new(
+            _signer,
+            providers.public.clone(),
+            providers.wallet.clone(),
+            config,
+        )
     }
 }
 
 impl ArbitersModule {
     pub fn new(
+        signer: PrivateKeySigner,
         public_provider: SharedPublicProvider,
         wallet_provider: SharedWalletProvider,
         addresses: Option<ArbitersAddresses>,
     ) -> eyre::Result<Self> {
         Ok(ArbitersModule {
+            signer,
             public_provider,
             wallet_provider,
             addresses: addresses.unwrap_or_default(),
         })
+    }
+
+    /// Gets the current nonce for the signer's address.
+    ///
+    /// # Returns
+    /// * `Result<u64>` - The current transaction count (nonce) for the signer
+    async fn get_nonce(&self) -> eyre::Result<u64> {
+        let nonce = self
+            .wallet_provider
+            .get_transaction_count(self.signer.address())
+            .await?;
+        Ok(nonce)
     }
 
     pub async fn arbitrate_as_trusted_oracle(
@@ -167,6 +188,7 @@ impl ArbitersModule {
 
         let receipt = trusted_oracle_arbiter
             .arbitrate(obligation, decision)
+            .nonce(self.get_nonce().await?)
             .send()
             .await?
             .get_receipt()
