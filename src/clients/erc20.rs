@@ -410,7 +410,10 @@ impl Erc20Module {
                 U256::from(deadline),
             )
             .await?;
-
+        let nonce = self
+            .wallet_provider
+            .get_transaction_count(self.signer.address())
+            .await?;
         let barter_utils_contract =
             contracts::ERC20BarterUtils::new(self.addresses.barter_utils, &self.wallet_provider);
         let receipt = barter_utils_contract
@@ -425,6 +428,7 @@ impl Erc20Module {
                 permit.r().into(),
                 permit.s().into(),
             )
+            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
