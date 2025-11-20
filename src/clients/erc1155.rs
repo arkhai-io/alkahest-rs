@@ -92,18 +92,6 @@ impl Erc1155Module {
             addresses: addresses.unwrap_or_default(),
         })
     }
-    
-    /// Gets the current nonce for the signer's address.
-    ///
-    /// # Returns
-    /// * `Result<u64>` - The current transaction count (nonce) for the signer
-    async fn get_nonce(&self) -> eyre::Result<u64> {
-        let nonce = self
-            .wallet_provider
-            .get_transaction_count(self.signer.address())
-            .await?;
-        Ok(nonce)
-    }
 
     /// Decodes ERC1155EscrowObligation.ObligationData from bytes.
     ///
@@ -189,11 +177,8 @@ impl Erc1155Module {
             ApprovalPurpose::Payment => self.addresses.payment_obligation,
         };
 
-        let nonce = self.get_nonce().await?;
-        
         let receipt = erc1155_contract
             .setApprovalForAll(to, true)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -222,11 +207,8 @@ impl Erc1155Module {
             ApprovalPurpose::Payment => self.addresses.payment_obligation,
         };
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = erc1155_contract
             .setApprovalForAll(to, false)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -253,11 +235,8 @@ impl Erc1155Module {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = escrow_contract
             .collectEscrow(buy_attestation, fulfillment)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -282,11 +261,8 @@ impl Erc1155Module {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = escrow_contract
             .reclaimExpired(buy_attestation)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -315,8 +291,6 @@ impl Erc1155Module {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = escrow_obligation_contract
             .doObligation(
                 contracts::ERC1155EscrowObligation::ObligationData {
@@ -328,7 +302,6 @@ impl Erc1155Module {
                 },
                 expiration,
             )
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -355,8 +328,6 @@ impl Erc1155Module {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = payment_obligation_contract
             .doObligation(contracts::ERC1155PaymentObligation::ObligationData {
                 token: price.address,
@@ -364,7 +335,6 @@ impl Erc1155Module {
                 amount: price.value,
                 payee,
             })
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -391,8 +361,6 @@ impl Erc1155Module {
         let barter_utils_contract =
             contracts::ERC1155BarterUtils::new(self.addresses.barter_utils, &*self.wallet_provider);
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .buyErc1155ForErc1155(
                 bid.address,
@@ -403,7 +371,6 @@ impl Erc1155Module {
                 ask.value,
                 expiration,
             )
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -426,11 +393,8 @@ impl Erc1155Module {
         let barter_utils_contract =
             contracts::ERC1155BarterUtils::new(self.addresses.barter_utils, &*self.wallet_provider);
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .payErc1155ForErc1155(buy_attestation)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -460,8 +424,6 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .buyErc20WithErc1155(
                 bid.address,
@@ -471,7 +433,6 @@ impl Erc1155Module {
                 ask.value,
                 expiration,
             )
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -497,11 +458,8 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .payErc1155ForErc20(buy_attestation)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -531,8 +489,6 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .buyErc721WithErc1155(
                 bid.address,
@@ -542,7 +498,6 @@ impl Erc1155Module {
                 ask.id,
                 expiration,
             )
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -568,11 +523,8 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .payErc1155ForErc721(buy_attestation)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -602,8 +554,6 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .buyBundleWithErc1155(
                 bid.address,
@@ -612,7 +562,6 @@ impl Erc1155Module {
                 (ask, self.signer.address()).into(),
                 expiration,
             )
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -638,11 +587,8 @@ impl Erc1155Module {
                 &*self.wallet_provider,
             );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .payErc1155ForBundle(buy_attestation)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()

@@ -112,6 +112,7 @@ mod tests {
         let ws = WsConnect::new(test.anvil.ws_endpoint_url());
 
         let provider = ProviderBuilder::new()
+            .with_simple_nonce_management()
             .wallet(wallet.clone())
             .connect_ws(ws)
             .await?;

@@ -160,18 +160,6 @@ impl OracleModule {
         })
     }
 
-    /// Gets the current nonce for the signer's address.
-    ///
-    /// # Returns
-    /// * `Result<u64>` - The current transaction count (nonce) for the signer
-    async fn get_nonce(&self) -> eyre::Result<u64> {
-        let nonce = self
-            .wallet_provider
-            .get_transaction_count(self.signer_address)
-            .await?;
-        Ok(nonce)
-    }
-
     pub async fn wait_for_arbitration(
         &self,
         obligation: FixedBytes<32>,
@@ -269,11 +257,8 @@ impl OracleModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let tx = trusted_oracle_arbiter
             .requestArbitration(obligation_uid, oracle)
-            .nonce(nonce)
             .send()
             .await?;
 
@@ -396,7 +381,11 @@ impl OracleModule {
             })
             .collect::<Vec<_>>();
 
-        let pending_txs = try_join_all(arbitration_futs).await?;
+        let mut pending_txs = Vec::new();
+        for fut in arbitration_futs {
+            pending_txs.push(fut.await?);
+        }
+
         let receipt_futs = pending_txs
             .into_iter()
             .map(|tx| async move { tx.get_receipt().await });

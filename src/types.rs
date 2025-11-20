@@ -18,8 +18,11 @@ use crate::contracts::IEAS::Attestation;
 pub type WalletProvider = FillProvider<
     JoinFill<
         JoinFill<
-            alloy::providers::Identity,
-            JoinFill<GasFiller, JoinFill<BlobGasFiller, JoinFill<NonceFiller, ChainIdFiller>>>,
+            JoinFill<
+                alloy::providers::Identity,
+                JoinFill<GasFiller, JoinFill<BlobGasFiller, JoinFill<NonceFiller, ChainIdFiller>>>,
+            >,
+            NonceFiller<SimpleNonceManager>,
         >,
         WalletFiller<EthereumWallet>,
     >,

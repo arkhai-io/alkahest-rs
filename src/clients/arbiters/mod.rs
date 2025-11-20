@@ -164,18 +164,6 @@ impl ArbitersModule {
         })
     }
 
-    /// Gets the current nonce for the signer's address.
-    ///
-    /// # Returns
-    /// * `Result<u64>` - The current transaction count (nonce) for the signer
-    async fn get_nonce(&self) -> eyre::Result<u64> {
-        let nonce = self
-            .wallet_provider
-            .get_transaction_count(self.signer.address())
-            .await?;
-        Ok(nonce)
-    }
-
     pub async fn arbitrate_as_trusted_oracle(
         &self,
         obligation: FixedBytes<32>,
@@ -188,7 +176,6 @@ impl ArbitersModule {
 
         let receipt = trusted_oracle_arbiter
             .arbitrate(obligation, decision)
-            .nonce(self.get_nonce().await?)
             .send()
             .await?
             .get_receipt()

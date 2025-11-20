@@ -104,18 +104,6 @@ impl NativeTokenModule {
         })
     }
 
-    /// Gets the current nonce for the signer's address.
-    ///
-    /// # Returns
-    /// * `Result<u64>` - The current transaction count (nonce) for the signer
-    async fn get_nonce(&self) -> eyre::Result<u64> {
-        let nonce = self
-            .wallet_provider
-            .get_transaction_count(self.signer.address())
-            .await?;
-        Ok(nonce)
-    }
-
     /// Decodes NativeTokenEscrowObligation.ObligationData from bytes.
     ///
     /// # Arguments
@@ -198,11 +186,8 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = escrow_contract
             .collectEscrow(buy_attestation, fulfillment)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -227,11 +212,8 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = escrow_contract
             .reclaimExpired(buy_attestation)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -260,8 +242,6 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = escrow_obligation_contract
             .doObligation(
                 contracts::NativeTokenEscrowObligation::ObligationData {
@@ -272,7 +252,6 @@ impl NativeTokenModule {
                 expiration,
             )
             .value(price.value)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -299,15 +278,12 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = payment_obligation_contract
             .doObligation(contracts::NativeTokenPaymentObligation::ObligationData {
                 amount: price.value,
                 payee,
             })
             .value(price.value)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -336,12 +312,9 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .buyEthForEth(bid.value, ask.value, expiration)
             .value(bid.value)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -366,11 +339,8 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .payEthForEth(buy_attestation)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -399,12 +369,9 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .buyErc20WithEth(bid.value, ask.address, ask.value, expiration)
             .value(bid.value)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -429,11 +396,8 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .payEthForErc20(buy_attestation)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -462,12 +426,9 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .buyErc721WithEth(bid.value, ask.address, ask.id, expiration)
             .value(bid.value)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -492,11 +453,8 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .payEthForErc721(buy_attestation)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -525,12 +483,9 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .buyErc1155WithEth(bid.value, ask.address, ask.id, ask.value, expiration)
             .value(bid.value)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -555,11 +510,8 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .payEthForErc1155(buy_attestation)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -588,12 +540,9 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .buyBundleWithEth(bid.value, (ask, self.signer.address()).into(), expiration)
             .value(bid.value)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
@@ -618,11 +567,8 @@ impl NativeTokenModule {
             &*self.wallet_provider,
         );
 
-        let nonce = self.get_nonce().await?;
-
         let receipt = barter_utils_contract
             .payEthForBundle(buy_attestation)
-            .nonce(nonce)
             .send()
             .await?
             .get_receipt()
